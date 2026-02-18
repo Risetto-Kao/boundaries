@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 問卷主表
+model Survey {
+  id          String     @id @default(uuid())
+  title       String     @db.VarChar(200)
+  description String?    @db.Text
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  
+  // 關聯
+  questions   Question[]
+  responses   Response[]
+  
+  @@map("surveys")
+}
+
+// 問題表
+model Question {
+  id         String   @id @default(uuid())
+  surveyId   String   @map("survey_id")
+  orderIndex Int      @map("order_index")
+  text       String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  // 關聯
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+  
+  // 約束：同一問卷中 order_index 不可重複
+  @@unique([surveyId, orderIndex], name: "unique_question_order")
+  @@index([surveyId])
+  @@map("questions")
+}
+
+// 回答表（代表一個人的填寫記錄）
+model Response {
+  id          String   @id @default(uuid())
+  surveyId    String   @map("survey_id")
+  nickname    String   @db.VarChar(50)
+  submittedAt DateTime @default(now()) @map("submitted_at")
+  
+  // 關聯
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  
+  // 約束：同一問卷中暱稱不可重複
+  @@unique([surveyId, nickname], name: "unique_survey_nickname")
+  @@index([surveyId])
+  @@map("responses")
+}
+
+// 答案表（每題的答案）
+model Answer {
+  id         String   @id @default(uuid())
+  responseId String   @map("response_id")
+  questionId String   @map("question_id")
+  value      String   @db.VarChar(10) // 'yes' | 'no' | 'depends'
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  // 關聯
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // 約束：同一回答中，每個問題只能有一個答案
+  @@unique([responseId, questionId], name: "unique_answer")
+  @@index([responseId])
+  @@index([questionId])
+  @@map("answers")
+}
