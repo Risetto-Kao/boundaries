@@ -1,65 +1,217 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+const MAX_QUESTIONS = 20;
+const FIXED_OPTIONS = ["Yes", "No", "Depends"] as const;
+
+interface CreateSurveyResult {
+  surveyId: string;
+  fillUrl: string;
+  resultUrl: string;
+}
+
+interface CreateSurveyError {
+  error: string;
+}
 
 export default function Home() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [questions, setQuestions] = useState([""]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [createResult, setCreateResult] = useState<CreateSurveyResult | null>(null);
+
+  const questionCount = questions.length;
+  const hasReachedQuestionLimit = questionCount >= MAX_QUESTIONS;
+  const isFormValid = useMemo(() => {
+    if (!title.trim()) {
+      return false;
+    }
+
+    return questions.every((question) => question.trim().length > 0);
+  }, [title, questions]);
+
+  const updateQuestion = (index: number, nextValue: string) => {
+    setQuestions((prev) => prev.map((question, i) => (i === index ? nextValue : question)));
+  };
+
+  const addQuestion = () => {
+    if (hasReachedQuestionLimit) {
+      return;
+    }
+
+    setQuestions((prev) => [...prev, ""]);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage("");
+    setCreateResult(null);
+
+    if (!title.trim()) {
+      setErrorMessage("標題不可空白");
+      return;
+    }
+
+    const trimmedQuestions = questions.map((question) => question.trim());
+    if (trimmedQuestions.some((question) => question.length === 0)) {
+      setErrorMessage("每個問題都要有內容");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/surveys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          questions: trimmedQuestions,
+        }),
+      });
+
+      const payload = (await response.json()) as CreateSurveyResult | CreateSurveyError;
+
+      if (!response.ok) {
+        const message = "error" in payload ? payload.error : "建立問卷失敗，請稍後重試";
+        setErrorMessage(message);
+        return;
+      }
+
+      if ("error" in payload) {
+        setErrorMessage(payload.error);
+        return;
+      }
+
+      setCreateResult(payload);
+      setTitle("");
+      setDescription("");
+      setQuestions([""]);
+    } catch {
+      setErrorMessage("建立問卷失敗，請稍後重試");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen bg-slate-50 p-6 md:p-10">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">建立問卷</CardTitle>
+            <CardDescription>
+              先完成 EPIC 1：輸入標題、描述與 1~20 題問題。每題固定三選一（Yes / No / Depends）。
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="survey-title">
+                  標題
+                </label>
+                <Input
+                  id="survey-title"
+                  placeholder="例如：旅遊絕交問卷"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  maxLength={200}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="survey-description">
+                  描述（可選）
+                </label>
+                <Textarea
+                  id="survey-description"
+                  placeholder="補充這份問卷的背景說明"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  maxLength={1000}
+                />
+              </div>
+
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium">問題列表（{questionCount}/20）</h2>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addQuestion}
+                    disabled={hasReachedQuestionLimit}
+                  >
+                    新增問題
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {questions.map((question, index) => (
+                    <div key={`question-${index}`} className="rounded-lg border bg-white p-3">
+                      <label className="mb-2 block text-sm font-medium" htmlFor={`question-${index}`}>
+                        問題 {index + 1}
+                      </label>
+                      <Input
+                        id={`question-${index}`}
+                        value={question}
+                        placeholder={`輸入第 ${index + 1} 題`}
+                        onChange={(event) => updateQuestion(index, event.target.value)}
+                        required
+                      />
+                      <p className="mt-2 text-xs text-slate-500">
+                        固定答案選項：{FIXED_OPTIONS.join(" / ")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
+
+              <Button type="submit" disabled={!isFormValid || isSubmitting}>
+                {isSubmitting ? "建立中..." : "建立問卷"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {createResult ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>建立成功</CardTitle>
+              <CardDescription>已產生唯一問卷 ID：{createResult.surveyId}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p>
+                填寫頁：
+                <Link className="ml-1 text-blue-700 underline" href={createResult.fillUrl}>
+                  {createResult.fillUrl}
+                </Link>
+              </p>
+              <p>
+                結果頁：
+                <Link className="ml-1 text-blue-700 underline" href={createResult.resultUrl}>
+                  {createResult.resultUrl}
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
+      </div>
+    </main>
   );
 }
