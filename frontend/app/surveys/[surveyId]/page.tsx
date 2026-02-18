@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CopyLinkButton } from "@/components/copy-link-button";
+import { SurveyResponseForm } from "@/components/survey-response-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSurveyById } from "@/lib/surveys";
 import { surveyIdSchema } from "@/lib/validations";
-
-const FIXED_OPTIONS = ["Yes", "No", "Depends"];
 
 export default async function SurveyPage({
   params,
@@ -32,22 +32,24 @@ export default async function SurveyPage({
         <Card>
           <CardHeader>
             <CardTitle>{survey.title}</CardTitle>
-            <CardDescription>{survey.description ?? "這份問卷沒有描述。"}</CardDescription>
+            <CardDescription>{survey.description ?? "請根據你的習慣誠實作答。"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-slate-600">
-              EPIC 2（填寫流程）開發中，目前先完成問卷建立功能。固定答案選項：{FIXED_OPTIONS.join(
-                " / ",
-              )}
-            </p>
-            <ol className="list-inside list-decimal space-y-2 text-sm">
-              {survey.questions.map((question) => (
-                <li key={question.id}>{question.text}</li>
-              ))}
-            </ol>
-            <Link className="text-sm text-blue-700 underline" href={`/surveys/${survey.id}/results`}>
-              前往結果頁（EPIC 3）
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <CopyLinkButton label="複製問卷連結" />
+              <CopyLinkButton label="複製結果連結" path={`/surveys/${survey.id}/results`} />
+              <Link className="inline-flex items-center text-sm text-blue-700 underline" href={`/surveys/${survey.id}/results`}>
+                查看目前結果
+              </Link>
+            </div>
+
+            <SurveyResponseForm
+              surveyId={survey.id}
+              questions={survey.questions.map((question) => ({
+                id: question.id,
+                text: question.text,
+              }))}
+            />
           </CardContent>
         </Card>
       </div>

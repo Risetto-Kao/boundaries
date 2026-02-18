@@ -21,6 +21,7 @@
 - [introduction.md](./introduction.md) - 專案簡介與核心理念
 - [PRD.md](./PRD.md) - 產品需求文件
 - [MVP.md](./MVP.md) - MVP 功能規劃與優先級
+- [docs/MVP-P0-endpoints.md](./docs/MVP-P0-endpoints.md) - 目前可用頁面路由與 API 端點整理
 
 ### 🏗️ 技術文件
 📁 [docs/tech-architecture/](./docs/tech-architecture/)

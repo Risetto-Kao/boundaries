@@ -1,216 +1,57 @@
-"use client";
-
-import { useMemo, useState } from "react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { getRecentSurveys } from "@/lib/surveys";
 
-const MAX_QUESTIONS = 20;
-const FIXED_OPTIONS = ["Yes", "No", "Depends"] as const;
-
-interface CreateSurveyResult {
-  surveyId: string;
-  fillUrl: string;
-  resultUrl: string;
-}
-
-interface CreateSurveyError {
-  error: string;
-}
-
-export default function Home() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [questions, setQuestions] = useState([""]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [createResult, setCreateResult] = useState<CreateSurveyResult | null>(null);
-
-  const questionCount = questions.length;
-  const hasReachedQuestionLimit = questionCount >= MAX_QUESTIONS;
-  const isFormValid = useMemo(() => {
-    if (!title.trim()) {
-      return false;
-    }
-
-    return questions.every((question) => question.trim().length > 0);
-  }, [title, questions]);
-
-  const updateQuestion = (index: number, nextValue: string) => {
-    setQuestions((prev) => prev.map((question, i) => (i === index ? nextValue : question)));
-  };
-
-  const addQuestion = () => {
-    if (hasReachedQuestionLimit) {
-      return;
-    }
-
-    setQuestions((prev) => [...prev, ""]);
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setErrorMessage("");
-    setCreateResult(null);
-
-    if (!title.trim()) {
-      setErrorMessage("標題不可空白");
-      return;
-    }
-
-    const trimmedQuestions = questions.map((question) => question.trim());
-    if (trimmedQuestions.some((question) => question.length === 0)) {
-      setErrorMessage("每個問題都要有內容");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/surveys", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          questions: trimmedQuestions,
-        }),
-      });
-
-      const payload = (await response.json()) as CreateSurveyResult | CreateSurveyError;
-
-      if (!response.ok) {
-        const message = "error" in payload ? payload.error : "建立問卷失敗，請稍後重試";
-        setErrorMessage(message);
-        return;
-      }
-
-      if ("error" in payload) {
-        setErrorMessage(payload.error);
-        return;
-      }
-
-      setCreateResult(payload);
-      setTitle("");
-      setDescription("");
-      setQuestions([""]);
-    } catch {
-      setErrorMessage("建立問卷失敗，請稍後重試");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+export default async function HomePage() {
+  const surveys = await getRecentSurveys(8);
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-10">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">建立問卷</CardTitle>
-            <CardDescription>
-              先完成 EPIC 1：輸入標題、描述與 1~20 題問題。每題固定三選一（Yes / No / Depends）。
-            </CardDescription>
+            <CardTitle className="text-3xl">Boundaries</CardTitle>
+            <CardDescription>社交化問卷工具：快速建立、匿名填寫、矩陣查看群體差異。</CardDescription>
           </CardHeader>
-
-          <CardContent>
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="survey-title">
-                  標題
-                </label>
-                <Input
-                  id="survey-title"
-                  placeholder="例如：旅遊絕交問卷"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  maxLength={200}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="survey-description">
-                  描述（可選）
-                </label>
-                <Textarea
-                  id="survey-description"
-                  placeholder="補充這份問卷的背景說明"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  maxLength={1000}
-                />
-              </div>
-
-              <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium">問題列表（{questionCount}/20）</h2>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addQuestion}
-                    disabled={hasReachedQuestionLimit}
-                  >
-                    新增問題
-                  </Button>
-                </div>
-
-                <div className="space-y-3">
-                  {questions.map((question, index) => (
-                    <div key={`question-${index}`} className="rounded-lg border bg-white p-3">
-                      <label className="mb-2 block text-sm font-medium" htmlFor={`question-${index}`}>
-                        問題 {index + 1}
-                      </label>
-                      <Input
-                        id={`question-${index}`}
-                        value={question}
-                        placeholder={`輸入第 ${index + 1} 題`}
-                        onChange={(event) => updateQuestion(index, event.target.value)}
-                        required
-                      />
-                      <p className="mt-2 text-xs text-slate-500">
-                        固定答案選項：{FIXED_OPTIONS.join(" / ")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
-
-              <Button type="submit" disabled={!isFormValid || isSubmitting}>
-                {isSubmitting ? "建立中..." : "建立問卷"}
-              </Button>
-            </form>
+          <CardContent className="flex flex-wrap gap-3">
+            <Link className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm text-white" href="/create">
+              建立問卷
+            </Link>
+            <Link className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm" href="/surveys">
+              現有問卷
+            </Link>
           </CardContent>
         </Card>
 
-        {createResult ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>建立成功</CardTitle>
-              <CardDescription>已產生唯一問卷 ID：{createResult.surveyId}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p>
-                填寫頁：
-                <Link className="ml-1 text-blue-700 underline" href={createResult.fillUrl}>
-                  {createResult.fillUrl}
-                </Link>
-              </p>
-              <p>
-                結果頁：
-                <Link className="ml-1 text-blue-700 underline" href={createResult.resultUrl}>
-                  {createResult.resultUrl}
-                </Link>
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
+        <Card>
+          <CardHeader>
+            <CardTitle>近期問卷</CardTitle>
+            <CardDescription>你可以直接進入填寫頁或結果頁。</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {surveys.length === 0 ? (
+              <p className="text-sm text-slate-600">目前還沒有問卷，先建立第一份吧。</p>
+            ) : (
+              surveys.map((survey) => (
+                <div key={survey.id} className="rounded-md border bg-white p-3">
+                  <p className="font-medium">{survey.title}</p>
+                  <p className="text-sm text-slate-600">
+                    填寫數：{survey._count.responses} 人
+                  </p>
+                  <div className="mt-2 flex gap-3 text-sm">
+                    <Link className="text-blue-700 underline" href={`/surveys/${survey.id}`}>
+                      前往填寫
+                    </Link>
+                    <Link className="text-blue-700 underline" href={`/surveys/${survey.id}/results`}>
+                      查看結果
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
