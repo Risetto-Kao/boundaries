@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRecentSurveys } from "@/lib/surveys";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const surveys = await getRecentSurveys(8);
 
