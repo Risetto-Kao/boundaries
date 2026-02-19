@@ -6,9 +6,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+  const isProduction = process.env.NODE_ENV === "production";
+  const primary = isProduction ? process.env.DATABASE_URL : process.env.DIRECT_URL;
+  const fallback = isProduction ? process.env.DIRECT_URL : process.env.DATABASE_URL;
+  const connectionString = primary ?? fallback;
   if (!connectionString) {
-    throw new Error("DIRECT_URL or DATABASE_URL is not set");
+    throw new Error("DATABASE_URL or DIRECT_URL is not set");
   }
 
   return new PrismaClient({
