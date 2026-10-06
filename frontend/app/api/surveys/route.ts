@@ -1,10 +1,14 @@
+import { AuthUnavailableError, getCurrentUser } from "@/lib/auth/user";
+import { isSameOrigin } from "@/lib/auth/config";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { createSurveySchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: "無效的請求來源" }, { status: 403 });
   try {
+    const user = await getCurrentUser();
     const body = await request.json();
     const parsed = createSurveySchema.safeParse(body);
 
@@ -24,6 +28,7 @@ export async function POST(request: Request) {
 
     const survey = await prisma.survey.create({
       data: {
+        ownerId: user?.id ?? null,
         title,
         description,
         questions: {
@@ -47,6 +52,9 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof AuthUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     console.error("Create survey failed:", error);
     return NextResponse.json(
       {

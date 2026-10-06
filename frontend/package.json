@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test:auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test scripts/auth-config.test.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

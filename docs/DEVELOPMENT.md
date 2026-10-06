@@ -28,7 +28,8 @@ pnpm build
 pnpm start
 ```
 
-目前 **沒有自動測試套件或 test 指令**。lint/typecheck/build 不等於功能測試。
+目前沒有完整的端到端自動測試套件。`pnpm --dir frontend test:auth` 只驗證登入導向、
+請求來源與 provider 設定；lint/typecheck/build 不等於功能測試。
 CI 對 master push 與指向 master 的 PR 執行上述三項檢查。
 Prisma client 在 install 的 postinstall 階段產生，不需要真實資料庫。
 
@@ -43,6 +44,7 @@ Prisma client 在 install 的 postinstall 階段產生，不需要真實資料�
 | `DIRECT_URL` | development runtime 優先使用的連線，以及 Prisma CLI 的連線 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase client 的公開 project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client 的公開 anon/publishable key，仍需資料庫 RLS 保護 |
+| `AUTH_SITE_URL` | 本環境 OAuth callback 的網站 origin，例如 `http://localhost:3000`；Preview 使用自己的 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | 現有 runtime 沒有使用，不需為 build 或 Cloud 填入；不可公開 |
 
 Next.js 自動讀取 `.env.local`；Prisma CLI 不會讀取這個檔案。
@@ -155,3 +157,9 @@ Vercel 已顯示自有網域與 `boundaries-kappa.vercel.app` 均為 Valid Confi
 Cloud：可執行程式檢查；視覺驗證需依該 task 實際 browser 能力判定，不能假設存在。
 可使用 Cloud PR → Vercel Preview → iPhone Safari → 回報問題 → Cloud 修改；
 回 Mac 時再使用 Local Codex + Arc 做視覺 debugging。
+
+## Google 登入與帳號紀錄
+
+完整設定與驗證流程見 [AUTH.md](AUTH.md)。登入使用 Supabase Auth；
+問卷與答案繼續由 server-only Prisma 存入同一 Supabase PostgreSQL 專案。
+新增 SQL 不會在 install/build/deploy 時自動執行。
