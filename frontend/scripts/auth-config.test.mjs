@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { authProviders, safeReturnTo, isSameOrigin, isAuthConfigured } from '../lib/auth/config.ts';
+import { authProviders, safeReturnTo, isSameOrigin, isAuthConfigured, isAccountHistoryEnabled } from '../lib/auth/config.ts';
 
 test('keeps internal form destinations and normalizes paths', () => {
   assert.equal(safeReturnTo('/surveys/abc?tab=answers#question'), '/surveys/abc?tab=answers#question');
@@ -34,6 +34,7 @@ test('exposes only Google until additional providers are configured', () => {
 });
 
 test('placeholder and missing auth configuration keep guest mode available', () => {
+  const previousEnabled = process.env.ACCOUNT_HISTORY_ENABLED;
   const previousUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const previousKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   try {
@@ -45,8 +46,16 @@ test('placeholder and missing auth configuration keep guest mode available', () 
     assert.equal(isAuthConfigured(), false);
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://development.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'public-test-key';
+    delete process.env.ACCOUNT_HISTORY_ENABLED;
+    assert.equal(isAccountHistoryEnabled(), false);
+    assert.equal(isAuthConfigured(), false);
+    process.env.ACCOUNT_HISTORY_ENABLED = "false";
+    assert.equal(isAuthConfigured(), false);
+    process.env.ACCOUNT_HISTORY_ENABLED = "true";
     assert.equal(isAuthConfigured(), true);
   } finally {
+    if (previousEnabled === undefined) delete process.env.ACCOUNT_HISTORY_ENABLED;
+    else process.env.ACCOUNT_HISTORY_ENABLED = previousEnabled;
     if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
     else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl;
     if (previousKey === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

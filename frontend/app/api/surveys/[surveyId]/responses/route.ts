@@ -1,5 +1,5 @@
 import { AuthUnavailableError, getCurrentUser } from "@/lib/auth/user";
-import { isSameOrigin } from "@/lib/auth/config";
+import { isAccountHistoryEnabled, isSameOrigin } from "@/lib/auth/config";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -63,7 +63,7 @@ export async function POST(
 
     const response = await prisma.response.create({
       data: {
-        userId: user?.id ?? null,
+        ...(isAccountHistoryEnabled() ? { userId: user?.id ?? null } : {}),
         surveyId: validSurveyId,
         nickname: nickname.trim(),
         answers: {

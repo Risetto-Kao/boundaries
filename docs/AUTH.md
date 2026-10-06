@@ -69,8 +69,16 @@ Supabase Authentication > URL Configuration：
 
 - `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`：開發 Supabase API URL 與 anon/publishable key。
 - `DATABASE_URL`、`DIRECT_URL`：同一開發專案的 server database connection，依 DEVELOPMENT.md 的 runtime 選擇規則。
+- `ACCOUNT_HISTORY_ENABLED`：設定完成後設為 `true`；未設定或 false 時保持訪客模式。
 - `AUTH_SITE_URL`：實際網站 origin，例如 `http://localhost:3000`，不要帶路徑。
   若使用不同 port 或 Preview URL，必須一起更新這項與 Supabase Redirect URLs。
+
+完成 SQL、Google provider 與 redirect 設定後，才設定 `ACCOUNT_HISTORY_ENABLED=true` 並重新部署。
+預設為 false：只提供訪客服務，不讀寫新增的帳號欄位，也不啟動 OAuth；
+因此正式資料庫還沒更新時，既有表單仍可使用。正式啟用前的資料仍屬訪客資料。
+
+本次 `codex/google-login-history` 分支已在 `frontend/vercel.json` 停用 Git Preview 部署，
+避免繼承正式資料庫；master 的正式部署仍啟用。未來要建立 Preview，必須先配置隔離 DB。
 
 不需要 `SUPABASE_SERVICE_ROLE_KEY`。請勿提交 `.env.local` 或把密鑰貼到聊天。
 使用 Node `.nvmrc`、pnpm 10.13.1，執行 `pnpm --dir frontend dev`。
@@ -124,3 +132,6 @@ token 當成 Supabase session，也不要以 email 或暱稱自動合併不同�
 - 跨來源建立請求 403；同來源無效表單 400；登出 303 回首頁；沒有有效表單寫入。
 - 嘗試在 Arc 開啟登入頁、重新整理及帶到前景，Arc 內容區持續空白，未能確認畫面或操作。
   不把這項視為 UI 驗證通過，登入後與手機畫面仍待實際確認。
+
+部署前另以 Prisma capture-only adapter 確認：訪客建立及提交產生的 INSERT
+不含 owner_id／user_id，無需連線或寫入真實資料庫。正式 schema 變更仍未執行。

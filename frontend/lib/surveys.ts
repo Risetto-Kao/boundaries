@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import type { Answer } from "@/types/survey";
 
+// Public form queries deliberately exclude account attribution columns so the
+// existing service works before the additive Auth schema rollout.
+const surveyFields = { id: true, title: true, description: true, createdAt: true, updatedAt: true } as const;
+
 export async function getRecentSurveys(limit = 10) {
   try {
     return await prisma.survey.findMany({
@@ -8,7 +12,8 @@ export async function getRecentSurveys(limit = 10) {
         createdAt: "desc",
       },
       take: limit,
-      include: {
+      select: {
+        ...surveyFields,
         _count: {
           select: {
             responses: true,
@@ -27,7 +32,8 @@ export async function getAllSurveys({ throwOnError = false } = {}) {
       orderBy: {
         createdAt: "desc",
       },
-      include: {
+      select: {
+        ...surveyFields,
         _count: {
           select: {
             responses: true,
@@ -46,7 +52,8 @@ export async function getSurveyById(surveyId: string) {
     where: {
       id: surveyId,
     },
-    include: {
+    select: {
+      ...surveyFields,
       questions: {
         orderBy: {
           orderIndex: "asc",
@@ -61,7 +68,8 @@ export async function getSurveyMatrixData(surveyId: string) {
     where: {
       id: surveyId,
     },
-    include: {
+    select: {
+      ...surveyFields,
       questions: {
         orderBy: {
           orderIndex: "asc",
@@ -71,7 +79,9 @@ export async function getSurveyMatrixData(surveyId: string) {
         orderBy: {
           submittedAt: "asc",
         },
-        include: {
+        select: {
+          id: true,
+          nickname: true,
           answers: true,
         },
       },

@@ -44,6 +44,7 @@ Prisma client 在 install 的 postinstall 階段產生，不需要真實資料�
 | `DIRECT_URL` | development runtime 優先使用的連線，以及 Prisma CLI 的連線 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase client 的公開 project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client 的公開 anon/publishable key，仍需資料庫 RLS 保護 |
+| `ACCOUNT_HISTORY_ENABLED` | SQL／Google 設定完成後設為 true 才開啟登入，預設保留訪客與舊 schema 相容 |
 | `AUTH_SITE_URL` | 本環境 OAuth callback 的網站 origin，例如 `http://localhost:3000`；Preview 使用自己的 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | 現有 runtime 沒有使用，不需為 build 或 Cloud 填入；不可公開 |
 
