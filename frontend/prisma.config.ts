@@ -1,8 +1,10 @@
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: env("DIRECT_URL"),
+    // Client generation does not connect to a database. Database commands still
+    // require DIRECT_URL to be explicitly supplied by the operator.
+    url: process.env.DIRECT_URL ?? "",
   },
 });

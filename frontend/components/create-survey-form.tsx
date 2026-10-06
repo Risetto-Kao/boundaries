@@ -112,7 +112,7 @@ export function CreateSurveyForm() {
         <CardHeader>
           <CardTitle className="text-2xl">建立問卷</CardTitle>
           <CardDescription>
-            輸入標題、描述與 1~20 題問題。每題固定三選一（Yes / No / Depends）。
+            輸入標題、描述與 1~20 題問題。答案值固定 Yes / No / Depends，填寫時以手勢作答。
           </CardDescription>
         </CardHeader>
 
@@ -172,7 +172,7 @@ export function CreateSurveyForm() {
                       required
                     />
                     <p className="mt-2 text-xs text-slate-500">
-                      固定答案選項：{FIXED_OPTIONS.join(" / ")}
+                      固定答案值：{FIXED_OPTIONS.join(" / ")}（填寫以手勢選擇）
                     </p>
                   </div>
                 ))}

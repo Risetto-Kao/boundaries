@@ -12,6 +12,7 @@
 - 📊 **矩陣視圖**：一眼看出誰跟誰想法不同
 - 🚀 **快速分享**：一鍵複製連結，病毒式傳播
 - 🎨 **視覺化差異**：綠色 Yes / 紅色 No / 灰色 Depends
+- 👆 **手勢作答**：單題畫面，右滑 Yes / 左滑 No / 連點兩下 Depends
 
 ---
 
@@ -43,6 +44,19 @@
 ```
 
 ### 給工程師
+
+本機、Codex Cloud、同步與部署請先閱讀 [開發指南](docs/DEVELOPMENT.md)。
+
+```bash
+nvm install
+nvm use
+npm install --global pnpm@10.13.1
+cd frontend
+cp .env.example .env.local  # 填入開發資料庫設定；不要使用正式資料庫
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
 ```bash
 1. 閱讀 docs/tech-architecture/00-decision-analysis.md（了解技術選型）
 2. 依角色閱讀對應文件：
@@ -58,9 +72,9 @@
 
 | 層級 | 技術 |
 |------|------|
-| **前端** | Next.js 14 + TypeScript + Tailwind CSS + Shadcn/ui |
+| **前端** | Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + Shadcn/ui |
 | **後端** | Supabase (PostgreSQL) + Prisma ORM |
-| **API** | Next.js Server Actions |
+| **API** | Next.js Route Handlers |
 | **部署** | Vercel + Supabase Cloud |
 
 **為什麼選擇這個技術棧？** 👉 [閱讀完整分析](./docs/tech-architecture/00-decision-analysis.md)
@@ -138,4 +152,4 @@ MIT License
 ---
 
 **專案狀態**：🚧 MVP 開發中  
-**最後更新**：2026-02-18
+**最後更新**：2026-03-03

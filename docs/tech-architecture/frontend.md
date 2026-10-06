@@ -78,7 +78,7 @@ boundaries/
 │   ├── survey/                  # 問卷專用組件
 │   │   ├── QuestionForm.tsx    # 問題編輯表單
 │   │   ├── QuestionList.tsx    # 問題列表
-│   │   ├── AnswerOptions.tsx   # 答案選項（Yes/No/Depends）
+│   │   ├── SwipeAnswerCard.tsx # 單題卡片手勢作答（Yes/No/Depends）
 │   │   └── MatrixView.tsx      # 結果矩陣表格
 │   │
 │   └── shared/                  # 共用組件
@@ -213,9 +213,9 @@ export async function createSurveyAction(formData: FormData) {
 ### 2. 填寫問卷頁 (`/survey/[id]`)
 
 #### 功能需求
-- 顯示問卷標題 & 問題列表
+- 顯示問卷標題
 - 輸入暱稱
-- 每題選擇 Yes / No / Depends
+- 單題畫面，手勢作答（右滑 Yes / 左滑 No / 連點兩下 Depends）
 - 驗證所有題目都已填寫
 - 提交後跳轉結果頁
 
@@ -273,6 +273,17 @@ function AnswerForm({ survey }) {
     }
   };
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentQuestion = survey.questions[currentIndex];
+
+  const handleAnswer = (value: Answer) => {
+    if (!currentQuestion) return;
+    setAnswers({ ...answers, [currentQuestion.id]: value });
+    if (currentIndex < survey.questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <Input
@@ -282,14 +293,11 @@ function AnswerForm({ survey }) {
         required
       />
 
-      {survey.questions.map((q) => (
-        <AnswerOptions
-          key={q.id}
-          question={q.text}
-          value={answers[q.id]}
-          onChange={(value) => setAnswers({ ...answers, [q.id]: value })}
-        />
-      ))}
+      <SwipeAnswerCard
+        question={currentQuestion?.text ?? ''}
+        value={currentQuestion ? answers[currentQuestion.id] : undefined}
+        onAnswer={handleAnswer}
+      />
 
       <Button type="submit">提交答案</Button>
     </form>
@@ -297,44 +305,29 @@ function AnswerForm({ survey }) {
 }
 ```
 
-#### 答案選項組件
+#### 單題手勢作答卡
 ```typescript
-// components/survey/AnswerOptions.tsx
+// components/survey/SwipeAnswerCard.tsx
 type Answer = 'yes' | 'no' | 'depends';
 
-function AnswerOptions({ question, value, onChange }: {
+function SwipeAnswerCard({ question, value, onAnswer }: {
   question: string;
   value?: Answer;
-  onChange: (value: Answer) => void;
+  onAnswer: (value: Answer) => void;
 }) {
   return (
     <div className="space-y-2">
       <p className="font-medium">{question}</p>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant={value === 'yes' ? 'default' : 'outline'}
-          className={value === 'yes' ? 'bg-green-500' : ''}
-          onClick={() => onChange('yes')}
-        >
-          ✅ Yes
-        </Button>
-        <Button
-          type="button"
-          variant={value === 'no' ? 'default' : 'outline'}
-          className={value === 'no' ? 'bg-red-500' : ''}
-          onClick={() => onChange('no')}
-        >
-          ❌ No
-        </Button>
-        <Button
-          type="button"
-          variant={value === 'depends' ? 'default' : 'outline'}
-          className={value === 'depends' ? 'bg-gray-500' : ''}
-          onClick={() => onChange('depends')}
-        >
-          ⚪ Depends
-        </Button>
+      <div
+        className="rounded-lg border p-4 text-center"
+        onPointerDown={/* 記錄起點 */}
+        onPointerUp={/* 判斷左滑/右滑 */}
+        onDoubleClick={() => onAnswer('depends')}
+      >
+        <p className="text-sm text-muted-foreground">
+          右滑 Yes / 左滑 No / 連點兩下 Depends
+        </p>
+        <p className="mt-2 text-sm">目前答案：{value ?? '尚未作答'}</p>
       </div>
     </div>
   );

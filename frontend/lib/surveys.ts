@@ -81,7 +81,7 @@ export async function getSurveyMatrixData(surveyId: string) {
     return null;
   }
 
-  const participants = survey.responses.map((response: { id: any; nickname: any; }) => ({
+  const participants = survey.responses.map((response) => ({
     id: response.id,
     nickname: response.nickname,
   }));

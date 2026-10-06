@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ANSWER_OPTIONS } from "@/lib/answer-meta";
 import type { Answer } from "@/types/survey";
 
 interface SurveyResponseFormProps {
@@ -71,6 +70,15 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showDependsIcon, setShowDependsIcon] = useState(false);
+  const [showRipple, setShowRipple] = useState(false);
+  const pointerStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const lastTapRef = useRef<number>(0);
+  const rippleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dependsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
@@ -78,11 +86,141 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
   const normalizedNickname = useMemo(() => nickname.trim().toLowerCase(), [nickname]);
 
+  useEffect(() => {
+    return () => {
+      if (rippleTimerRef.current) {
+        clearTimeout(rippleTimerRef.current);
+      }
+      if (dependsTimerRef.current) {
+        clearTimeout(dependsTimerRef.current);
+      }
+    };
+  }, []);
+
   const updateAnswer = (questionId: string, value: Answer) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: value,
     }));
+  };
+
+  const advanceIfPossible = (index: number) => {
+    if (index < questions.length - 1) {
+      setCurrentIndex(index + 1);
+    }
+  };
+
+  const handleAnswer = (value: Answer) => {
+    const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) {
+      return;
+    }
+    updateAnswer(currentQuestion.id, value);
+    advanceIfPossible(currentIndex);
+  };
+
+  const resetVisuals = () => {
+    setDragX(0);
+    setIsAnimating(false);
+  };
+
+  const showDepends = () => {
+    if (dependsTimerRef.current) {
+      clearTimeout(dependsTimerRef.current);
+    }
+    setShowDependsIcon(true);
+    dependsTimerRef.current = setTimeout(() => {
+      setShowDependsIcon(false);
+    }, 500);
+  };
+
+  const triggerRipple = () => {
+    if (rippleTimerRef.current) {
+      clearTimeout(rippleTimerRef.current);
+    }
+    setShowRipple(true);
+    rippleTimerRef.current = setTimeout(() => {
+      setShowRipple(false);
+    }, 350);
+  };
+
+  const animateSwipe = (value: Answer, direction: "left" | "right") => {
+    if (isAnimating) {
+      return;
+    }
+    setIsAnimating(true);
+    const targetX = direction === "right" ? 260 : -260;
+    setDragX(targetX);
+    window.setTimeout(() => {
+      handleAnswer(value);
+      resetVisuals();
+    }, 200);
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isAnimating) {
+      return;
+    }
+    pointerStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      t: Date.now(),
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isAnimating) {
+      return;
+    }
+    const start = pointerStartRef.current;
+    if (!start) {
+      return;
+    }
+    const deltaX = event.clientX - start.x;
+    setDragX(deltaX);
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const start = pointerStartRef.current;
+    pointerStartRef.current = null;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (!start) {
+      return;
+    }
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const elapsed = Date.now() - start.t;
+
+    const swipeThreshold = 50;
+    const isHorizontalSwipe = absX > swipeThreshold && absX > absY * 1.5 && elapsed < 800;
+
+    if (isHorizontalSwipe) {
+      if (deltaX > 0) {
+        animateSwipe("yes", "right");
+      } else {
+        animateSwipe("no", "left");
+      }
+      return;
+    }
+
+    setDragX(0);
+
+    const tapDistance = Math.hypot(deltaX, deltaY);
+    if (tapDistance < 10) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 350) {
+        lastTapRef.current = 0;
+        showDepends();
+        handleAnswer("depends");
+      } else {
+        lastTapRef.current = now;
+        triggerRipple();
+      }
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -144,6 +282,12 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
     }
   };
 
+  const currentQuestion = questions[currentIndex];
+  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
+  const dragStrength = Math.min(Math.abs(dragX) / 120, 1);
+  const showYesHint = dragX > 20;
+  const showNoHint = dragX < -20;
+
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="space-y-2">
@@ -161,28 +305,59 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       </div>
 
       <div className="space-y-4">
-        {questions.map((question, index) => {
-          const selectedValue = answers[question.id];
-          return (
-            <section key={question.id} className="rounded-lg border bg-white p-4">
-              <h3 className="mb-3 text-sm font-medium">
-                {index + 1}. {question.text}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {ANSWER_OPTIONS.map((option) => (
-                  <Button
-                    key={option.value}
-                    type="button"
-                    variant={selectedValue === option.value ? "default" : "outline"}
-                    onClick={() => updateAnswer(question.id, option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            </section>
-          );
-        })}
+        <section
+          className="relative overflow-hidden rounded-lg border bg-white p-5 text-center shadow-sm touch-pan-y select-none"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
+          <div
+            className="pointer-events-none absolute inset-0 flex items-center justify-between px-6 text-3xl font-semibold"
+            aria-hidden
+          >
+            <span
+              className="text-emerald-500 transition-opacity"
+              style={{ opacity: showYesHint ? dragStrength : 0 }}
+            >
+              ✅
+            </span>
+            <span
+              className="text-rose-500 transition-opacity"
+              style={{ opacity: showNoHint ? dragStrength : 0 }}
+            >
+              ❌
+            </span>
+          </div>
+
+          {showDependsIcon ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl text-slate-600">
+              ⚪
+            </div>
+          ) : null}
+
+          {showRipple ? (
+            <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-300 animate-ping" />
+          ) : null}
+
+          <div
+            className="relative"
+            style={{
+              transform: `translateX(${dragX}px)`,
+              transition: isAnimating ? "transform 180ms ease-out" : "transform 120ms ease-out",
+            }}
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              第 {currentIndex + 1} 題 / 共 {questions.length} 題
+            </p>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{currentQuestion?.text}</h3>
+            <p className="mt-4 text-sm text-slate-600">
+              左滑：No　右滑：Yes　連點兩下：看狀況
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              目前答案：{currentAnswer ? currentAnswer.toUpperCase() : "尚未作答"}
+            </p>
+          </div>
+        </section>
       </div>
 
       <p className="text-sm text-slate-600">

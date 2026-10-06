@@ -4,7 +4,7 @@
 | --------------------- | ------------- | -------- | --------------------- |
 | Create Template       | 建立新問卷         | P0       | 使用者可輸入標題與描述並儲存        |
 | Add Question          | 新增問題          | P0       | 可新增多題並排序              |
-| Fixed Answer Type     | 三選一固定選項       | P0       | 預設 Yes / No / Depends |
+| Fixed Answer Type     | 固定三種答案值       | P0       | 答案值固定 Yes / No / Depends；填寫時以手勢選擇（右滑 Yes / 左滑 No / 連點兩下 Depends） |
 | Edit Question         | 修改問題內容        | P1       | 可編輯問題文字               |
 | Duplicate Template    | 複製既有 template | P1       | 一鍵複製並建立新 ID           |
 | Public/Private Toggle | 公開或私人         | P1       | 可設定是否出現在模板列表          |
@@ -13,7 +13,7 @@
 | Feature          | Description | Priority | Acceptance Criteria |
 | ---------------- | ----------- | -------- | ------------------- |
 | Anonymous Entry  | 不強制登入       | P0       | 只需填名稱即可開始           |
-| Answer Selection | 三選一選擇       | P0       | 每題必填才能提交            |
+| Answer Selection | 手勢選擇答案       | P0       | 右滑 Yes / 左滑 No / 連點兩下 Depends；每題必填才能提交 |
 | Submission Lock  | 提交後不可修改     | P0       | 送出後不能再次填寫           |
 | Auto Redirect    | 填完自動跳轉結果頁   | P0       | 提交後 1 秒內顯示結果頁       |
 | Mobile Optimized | 手機填寫流暢      | P0       | UI 可單手操作            |
