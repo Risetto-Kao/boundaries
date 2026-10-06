@@ -54,7 +54,7 @@ Next.js 自動讀取 `.env.local`；Prisma CLI 不會讀取這個檔案。
 
 ## Cloud development
 
-**狀態：repository 已準備，帳號連線／環境 Publish／跨裝置 task 尚待驗證。**
+**狀態：published Cloud 環境已完成實際 smoke check；手機／跨裝置同步與資料庫互動尚未驗證。**
 目前官方文件：https://learn.chatgpt.com/docs/environments/cloud-environments
 
 在 Web 或 Desktop 的新 task 選 `Work in > Cloud > Select environment > Create environment`，
@@ -80,6 +80,36 @@ HTTPS Network secret 不能直接取代 PostgreSQL 連線字串。
 Cloud 環境準備、檢查、review 後 Save 並 Publish；看到 Environment published 才算完成。
 手機使用同一 ChatGPT 帳號，進入 Codex 選這個 published environment；
 實際可用性仍需從本人的 iPhone 驗證。
+
+### Published Cloud smoke check（2026-10-06）
+
+- 基準：GitHub 最新 master 與 Cloud checkout 均為 `90b003169161b4e00a53d1077c4a85930eba7581`。
+- Published 設定：Only me（依本次使用者提供的設定）、Node 24.21.0、pnpm 10.13.1；
+  Network 為 restricted、Package managers + `binaries.prisma.sh`。
+  實際 `/etc/codex/network-policy.json` 包含該網域，runtime status 回報 `enforced`。
+- Install script 完整環境如下；每個檢查 shell 均載入相同變數，未變更 HOME：
+
+```sh
+export PATH=/workspace/.boundaries-tools/node-v24.21.0-linux-x64/bin:$PATH
+export npm_config_prefix=/workspace/.boundaries-tools/node-v24.21.0-linux-x64
+export npm_config_cache=/workspace/.boundaries-tools/npm-cache
+export XDG_DATA_HOME=/workspace/.boundaries-tools/data
+export XDG_CACHE_HOME=/workspace/.boundaries-tools/cache
+export XDG_CONFIG_HOME=/workspace/.boundaries-tools/config
+mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME"
+bash scripts/codex-setup.sh
+```
+
+- 原 setup 成功（exit 0）；postinstall 與單獨 `prisma generate` 均成功產生
+  Prisma Client v7.4.0，確認 `PrismaClient` export 為 function。
+- `pnpm --dir frontend lint`、`typecheck`、`build` 均成功（exit 0）。Test suite：**None**。
+- `pnpm --dir frontend dev --hostname 0.0.0.0 --port 3000` 顯示 Ready；
+  唯讀 GET `http://127.0.0.1:3000/create` 回傳 **HTTP 200**。
+- 初次 command sandbox 對代理連線與本機 port 綁定回報 EPERM；經正式
+  `require_escalated` 命令審核後上述檢查通過。未永久關閉 sandbox、修改網路政策、
+  繞過代理或停用 checksum/TLS 檢查。
+- 使用既有 localhost 離線占位值，沒有新增 secrets、啟動資料庫、使用正式 DB、
+  執行 migrations/seed 或資料寫入。HTTP 200 不代表手機視覺、問卷互動或資料庫功能已驗證。
 
 ## Branch workflow / Sync
 
@@ -112,7 +142,7 @@ PR merge 後：`git switch master`，`git pull --ff-only origin master`。
 
 Cloud smoke task 建議只在本文件新增一行測試記錄，執行三項 checks，推
 `codex/cloud-smoke-test` 並開 PR；Mac fetch/checkout 後比對 commit SHA。
-**此流程尚未執行，不可把本機操作冒充 Cloud task。**
+本次已在實際 Codex Cloud 執行上述檢查；Mac fetch/checkout、PR、手機與資料庫互動仍未驗證。
 
 ## Preview / Production
 
