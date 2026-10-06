@@ -21,7 +21,7 @@ export async function getRecentSurveys(limit = 10) {
   }
 }
 
-export async function getAllSurveys() {
+export async function getAllSurveys({ throwOnError = false } = {}) {
   try {
     return await prisma.survey.findMany({
       orderBy: {
@@ -35,7 +35,8 @@ export async function getAllSurveys() {
         },
       },
     });
-  } catch {
+  } catch (error) {
+    if (throwOnError) throw error;
     return [];
   }
 }
