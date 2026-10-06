@@ -3,7 +3,7 @@
 ## Local development
 
 GitHub repository：`Risetto-Kao/boundaries`；正式分支：`master`。
-Next.js app 位於 `frontend/`。Node 使用根目錄 `.nvmrc`（20.20.0），
+Next.js app 位於 `frontend/`。Node 使用根目錄 `.nvmrc`（24.21.0），
 pnpm 固定 10.13.1。支援的 Node 範圍另見 `frontend/package.json`。
 
 ```sh
@@ -62,7 +62,7 @@ Next.js 自動讀取 `.env.local`；Prisma CLI 不會讀取這個檔案。
 選 `Risetto-Kao/boundaries`；若要求 GitHub OAuth，由本人完成授權。
 先建立 Only me 環境，Get started 後請 setup 使用：
 
-- Node 20.20.0、pnpm 10.13.1。
+- Node 24.21.0、pnpm 10.13.1。
 - Install script：`bash scripts/codex-setup.sh`（從 repository 根目錄執行）。
 - 檢查：`pnpm --dir frontend lint`、`pnpm --dir frontend typecheck`、`pnpm --dir frontend build`。
 - Start skill：從 repository 根目錄執行 `pnpm --dir frontend dev --hostname 0.0.0.0`，
@@ -132,7 +132,10 @@ Vercel 帳號查看受保護 Preview；不要關閉既有 protection。
 
 ## Domain
 
-自有網域尚未確認。登入既有 Vercel project 的 Settings > Domains，
+已驗證既有網域 `boundaries.weave-us.com`：HTTPS 首頁與 `/create` 回傳 200，
+HTTP 以 308 轉向 HTTPS；DNS CNAME 為 `27dd56c83911e1cf.vercel-dns-017.com`。
+這是現有記錄的檢查結果，不是要求新增或更改 DNS。
+登入既有 Vercel project 的 Settings > Domains，
 先核對目前綁定與 HTTPS/redirect，再依 Vercel「該網域」提供的實際 DNS records
 到 DNS provider 設定。不要用架構文件中的範例 IP/CNAME 代替實際指定值，
 不要擅自刪除既有 records。
