@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AccountNav } from "@/components/account-nav";
 
 export const metadata: Metadata = {
   title: "Boundaries",
@@ -13,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-Hant">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><AccountNav />{children}</body>
     </html>
   );
 }

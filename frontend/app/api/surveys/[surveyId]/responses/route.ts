@@ -1,3 +1,5 @@
+import { AuthUnavailableError, getCurrentUser } from "@/lib/auth/user";
+import { isAccountHistoryEnabled, isSameOrigin } from "@/lib/auth/config";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -12,7 +14,9 @@ export async function POST(
     }>;
   },
 ) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: "無效的請求來源" }, { status: 403 });
   try {
+    const user = await getCurrentUser();
     const { surveyId } = await context.params;
     const parsedSurveyId = surveyIdSchema.safeParse(surveyId);
     if (!parsedSurveyId.success) {
@@ -59,6 +63,7 @@ export async function POST(
 
     const response = await prisma.response.create({
       data: {
+        ...(isAccountHistoryEnabled() ? { userId: user?.id ?? null } : {}),
         surveyId: validSurveyId,
         nickname: nickname.trim(),
         answers: {
@@ -81,6 +86,9 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof AuthUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "同一暱稱已經提交過這份問卷" }, { status: 409 });
     }

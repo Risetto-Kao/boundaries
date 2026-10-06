@@ -17,10 +17,13 @@ model Survey {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
   
-  // 關聯
+  ownerId     String?    @map("owner_id") @db.Uuid
+
+  // Supabase auth.users identity; guests remain null.
   questions   Question[]
   responses   Response[]
   
+  @@index([ownerId, createdAt])
   @@map("surveys")
 }
 
@@ -47,6 +50,7 @@ model Response {
   id          String   @id @default(uuid())
   surveyId    String   @map("survey_id")
   nickname    String   @db.VarChar(50)
+  userId      String?  @map("user_id") @db.Uuid
   submittedAt DateTime @default(now()) @map("submitted_at")
   
   // 關聯
@@ -56,6 +60,7 @@ model Response {
   // 約束：同一問卷中暱稱不可重複
   @@unique([surveyId, nickname], name: "unique_survey_nickname")
   @@index([surveyId])
+  @@index([userId, submittedAt])
   @@map("responses")
 }
 

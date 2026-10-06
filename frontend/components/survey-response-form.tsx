@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 
@@ -23,47 +23,6 @@ interface SubmitResponseResult {
 
 interface SubmitResponseError {
   error: string;
-}
-
-function getSubmissionKey(surveyId: string) {
-  return `boundaries:submitted:${surveyId}`;
-}
-
-function readSubmittedNicknames(surveyId: string): string[] {
-  const stored = window.localStorage.getItem(getSubmissionKey(surveyId));
-  if (!stored) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(stored) as unknown;
-    if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) {
-      return parsed;
-    }
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-function hasSubmittedWithNickname(surveyId: string, nickname: string) {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const nicknames = readSubmittedNicknames(surveyId);
-  return nicknames.includes(nickname.toLowerCase());
-}
-
-function markSubmittedNickname(surveyId: string, nickname: string) {
-  const key = getSubmissionKey(surveyId);
-  const nextNickname = nickname.toLowerCase();
-  const nicknames = readSubmittedNicknames(surveyId);
-
-  if (!nicknames.includes(nextNickname)) {
-    nicknames.push(nextNickname);
-    window.localStorage.setItem(key, JSON.stringify(nicknames));
-  }
 }
 
 export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormProps) {
@@ -94,7 +53,6 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const allAnswered = answeredCount === questions.length;
   const canSubmit = nickname.trim().length > 0 && allAnswered && !isSubmitting && !isNavigating && !isAnimating;
 
-  const normalizedNickname = useMemo(() => nickname.trim().toLowerCase(), [nickname]);
 
   useEffect(() => {
     return () => {
@@ -219,11 +177,6 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       return;
     }
 
-    if (hasSubmittedWithNickname(surveyId, trimmedNickname)) {
-      setErrorMessage("這個暱稱已在此裝置提交過，請換一個暱稱");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/surveys/${surveyId}/responses`, {
@@ -253,7 +206,6 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
         return;
       }
 
-      markSubmittedNickname(surveyId, normalizedNickname || trimmedNickname);
       startNavigation(() => {
         router.push(payload.resultUrl);
         router.refresh();

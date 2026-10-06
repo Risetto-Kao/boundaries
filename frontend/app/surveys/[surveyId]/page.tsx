@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HistoryNotice } from "@/components/history-notice";
 import { notFound } from "next/navigation";
 
 import { CopyLinkButton } from "@/components/copy-link-button";
@@ -28,6 +29,7 @@ export default async function SurveyPage({
 
   return (
     <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-6 md:p-10">
+      <HistoryNotice returnTo={`/surveys/${survey.id}`} />
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <Card>
           <CardHeader>
