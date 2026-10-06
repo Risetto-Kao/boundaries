@@ -120,8 +120,13 @@ Cloud smoke task 建議只在本文件新增一行測試記錄，執行三項 ch
 `risettokaos-projects/boundaries`，master 先前成功部署到 Production。
 Project：https://vercel.com/risettokaos-projects/boundaries
 
-master push / PR merge 會觸發正式部署；feature branch/PR 預期由 Vercel Git integration
-提供 Preview，但其目前設定、Preview URL 與手機存取仍需登入後實測確認。
+master push / PR merge 會觸發正式部署；已實測 feature branch push 經 Vercel Git integration
+成功建立 Preview。Node 20 已被 Vercel 停用，新建置統一使用 Node 24。
+Node 24 驗證 Preview：https://boundaries-8uh7vlave-risettokaos-projects.vercel.app
+手機存取與實際 UI 仍需驗證。
+目前只有 `codex/node24-deployment` branch 的 DATABASE_URL/DIRECT_URL 設為 localhost
+占位值；其他 branch 仍繼承既有 All Environments 設定。建立其他 Preview 前，
+必須先配置隔離開發 DB 或該 branch 的離線占位值，不得對 production DB 試填問卷。
 不要為了測試 Cloud 推 master。GitHub CI 不代表 Vercel 必然等待 CI 成功才部署；
 目前沒有替你更改 branch protection 或 deployment protection。
 
@@ -136,7 +141,8 @@ Vercel 帳號查看受保護 Preview；不要關閉既有 protection。
 HTTP 以 308 轉向 HTTPS；DNS CNAME 為 `27dd56c83911e1cf.vercel-dns-017.com`。
 這是現有記錄的檢查結果，不是要求新增或更改 DNS。
 登入既有 Vercel project 的 Settings > Domains，
-先核對目前綁定與 HTTPS/redirect，再依 Vercel「該網域」提供的實際 DNS records
+Vercel 已顯示自有網域與 `boundaries-kappa.vercel.app` 均為 Valid Configuration。
+若未來更換網域，依 Vercel「該網域」提供的實際 DNS records
 到 DNS provider 設定。不要用架構文件中的範例 IP/CNAME 代替實際指定值，
 不要擅自刪除既有 records。
 
