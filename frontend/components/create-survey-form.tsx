@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
+import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ export function CreateSurveyForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
     setErrorMessage("");
     setCreateResult(null);
 
@@ -117,7 +119,7 @@ export function CreateSurveyForm() {
         </CardHeader>
 
         <CardContent>
-          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit} aria-busy={isSubmitting}>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="survey-title">
                 標題
@@ -182,8 +184,10 @@ export function CreateSurveyForm() {
             {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
 
             <Button type="submit" disabled={!isFormValid || isSubmitting}>
+              {isSubmitting && <LoadingSpinner />}
               {isSubmitting ? "建立中..." : "建立問卷"}
             </Button>
+            {isSubmitting && <p role="status" className="text-sm text-slate-600">正在建立問卷，請稍候…</p>}
           </form>
         </CardContent>
       </Card>

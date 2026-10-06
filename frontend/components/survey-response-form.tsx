@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Answer } from "@/types/survey";
@@ -70,6 +71,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNavigating, startNavigation] = useTransition();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -82,7 +84,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
-  const canSubmit = nickname.trim().length > 0 && allAnswered && !isSubmitting;
+  const canSubmit = nickname.trim().length > 0 && allAnswered && !isSubmitting && !isNavigating;
 
   const normalizedNickname = useMemo(() => nickname.trim().toLowerCase(), [nickname]);
 
@@ -225,6 +227,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting || isNavigating) return;
     setErrorMessage("");
 
     const trimmedNickname = nickname.trim();
@@ -273,8 +276,10 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       }
 
       markSubmittedNickname(surveyId, normalizedNickname || trimmedNickname);
-      router.push(payload.resultUrl);
-      router.refresh();
+      startNavigation(() => {
+        router.push(payload.resultUrl);
+        router.refresh();
+      });
     } catch {
       setErrorMessage("提交失敗，請稍後重試");
     } finally {
@@ -289,7 +294,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const showNoHint = dragX < -20;
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
+    <form className="space-y-5" onSubmit={handleSubmit} aria-busy={isSubmitting || isNavigating}>
       <div className="space-y-2">
         <label className="text-sm font-medium" htmlFor="nickname">
           你的暱稱
@@ -367,8 +372,14 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       {errorMessage ? <p className="text-sm text-rose-600">{errorMessage}</p> : null}
 
       <Button type="submit" disabled={!canSubmit}>
-        {isSubmitting ? "提交中..." : "提交答案"}
+        {(isSubmitting || isNavigating) && <LoadingSpinner />}
+        {isNavigating ? "正在開啟結果…" : isSubmitting ? "提交中..." : "提交答案"}
       </Button>
+      {(isSubmitting || isNavigating) && (
+        <p role="status" className="text-sm text-slate-600">
+          {isNavigating ? "答案已送出，正在載入結果…" : "正在提交答案，請稍候…"}
+        </p>
+      )}
     </form>
   );
 }
