@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,6 +17,7 @@ export default async function SurveyResultPage({
     surveyId: string;
   }>;
 }) {
+  const { t } = await getI18n();
   const { surveyId } = await params;
   const parsedSurveyId = surveyIdSchema.safeParse(surveyId);
 
@@ -35,27 +37,27 @@ export default async function SurveyResultPage({
       <div className="mx-auto min-w-0 w-full max-w-6xl">
         <Card>
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="leading-snug [overflow-wrap:anywhere]">{matrix.survey.title} - 填答結果</CardTitle>
+            <CardTitle className="leading-snug [overflow-wrap:anywhere]">{t("resultsTitle", { title: matrix.survey.title })}</CardTitle>
             <CardDescription className="[overflow-wrap:anywhere]">
-              {matrix.survey.description ?? "查看所有人的答案差異。重新整理頁面即可取得最新資料。"}
+              {matrix.survey.description ?? t("resultsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="min-w-0 space-y-4 px-4 text-sm sm:px-6">
             <div className="flex flex-wrap gap-2">
-              <CopyLinkButton label="複製結果連結" />
-              <CopyLinkButton label="複製問卷連結" path={fillPath} />
+              <CopyLinkButton label={t("copyResults")} />
+              <CopyLinkButton label={t("copySurvey")} path={fillPath} />
               <Link className="inline-flex items-center rounded-md bg-slate-900 px-3 py-2 text-white" href={fillPath}>
-                邀請朋友填寫
+                {t("inviteFriends")}
               </Link>
             </div>
 
             <p className="text-slate-600">
-              共 {matrix.participants.length} 人填寫，{matrix.questions.length} 題。
+              {t("resultsSummary", { people: matrix.participants.length, questions: matrix.questions.length })}
             </p>
 
             {matrix.participants.length === 0 ? (
               <p className="rounded-md border border-dashed p-4 text-slate-600">
-                還沒有人提交答案，先把問卷分享出去吧。
+                {t("noResponses")}
               </p>
             ) : (
               <SurveyResults

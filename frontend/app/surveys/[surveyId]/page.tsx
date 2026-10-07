@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import Link from "next/link";
 import { HistoryNotice } from "@/components/history-notice";
 import { notFound } from "next/navigation";
@@ -15,6 +16,7 @@ export default async function SurveyPage({
     surveyId: string;
   }>;
 }) {
+  const { t } = await getI18n();
   const { surveyId } = await params;
   const parsedSurveyId = surveyIdSchema.safeParse(surveyId);
 
@@ -34,14 +36,14 @@ export default async function SurveyPage({
         <Card>
           <CardHeader>
             <CardTitle>{survey.title}</CardTitle>
-            <CardDescription>{survey.description ?? "請根據你的習慣誠實作答。"}</CardDescription>
+            <CardDescription>{survey.description ?? t("answerHonestly")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 px-3 sm:px-6">
             <div className="flex flex-wrap gap-2">
-              <CopyLinkButton label="複製問卷連結" />
-              <CopyLinkButton label="複製結果連結" path={`/surveys/${survey.id}/results`} />
+              <CopyLinkButton label={t("copySurvey")} />
+              <CopyLinkButton label={t("copyResults")} path={`/surveys/${survey.id}/results`} />
               <Link className="inline-flex items-center text-sm text-blue-700 underline" href={`/surveys/${survey.id}/results`}>
-                查看目前結果
+                {t("currentResults")}
               </Link>
             </div>
 

@@ -1,15 +1,20 @@
+import { getI18n } from "@/lib/i18n/server";
+import { I18nProvider } from "@/components/i18n-provider";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AccountNav } from "@/components/account-nav";
 
-export const metadata: Metadata = {
-  title: "Boundaries",
-  description: "社交化問卷工具，快速找出群體共識與衝突",
-  applicationName: "Boundaries",
-  appleWebApp: { capable: true, title: "Boundaries", statusBarStyle: "default" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
-  other: { "apple-mobile-web-app-capable": "yes" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return {
+    title: "Boundaries",
+    description: t("siteDescription"),
+    applicationName: "Boundaries",
+    appleWebApp: { capable: true, title: "Boundaries", statusBarStyle: "default" },
+    icons: { apple: "/icons/apple-touch-icon.png" },
+    other: { "apple-mobile-web-app-capable": "yes" },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -18,14 +23,15 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { locale } = await getI18n();
   return (
-    <html lang="zh-Hant">
-      <body className="antialiased"><AccountNav />{children}</body>
+    <html lang={locale}>
+      <body className="antialiased"><I18nProvider initialLocale={locale}><AccountNav />{children}</I18nProvider></body>
     </html>
   );
 }

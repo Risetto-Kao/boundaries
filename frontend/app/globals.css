@@ -48,7 +48,7 @@
 }
 
 :root {
-  --font-geist-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-geist-sans: "Noto Sans TC", "Noto Sans JP", "Noto Sans KR", "PingFang TC", "Hiragino Sans", "Yu Gothic", "Malgun Gothic", "Microsoft JhengHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-geist-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --radius: 0.625rem;
   --background: oklch(1 0 0);

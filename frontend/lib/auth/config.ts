@@ -1,9 +1,10 @@
+import type { MessageKey } from "@/lib/i18n/config";
 import type { Provider } from "@supabase/supabase-js";
 
 // Add future providers here after enabling them in Supabase Auth.
-type AuthProvider = { id: string; label: string; provider: Provider; scopes: string };
+type AuthProvider = { id: string; labelKey: MessageKey; provider: Provider; scopes: string };
 export const authProviders = [
-  { id: "google", label: "使用 Google 登入", provider: "google", scopes: "openid email profile" },
+  { id: "google", labelKey: "loginGoogle", provider: "google", scopes: "openid email profile" },
 ] as const satisfies readonly AuthProvider[];
 
 export function isAccountHistoryEnabled() {

@@ -29,7 +29,8 @@ pnpm start
 ```
 
 目前沒有完整的端到端自動測試套件。`pnpm --dir frontend test:auth` 只驗證登入導向、
-請求來源與 provider 設定；lint/typecheck/build 不等於功能測試。
+請求來源與 provider 設定；`pnpm --dir frontend test:i18n` 驗證語言協商、多語輸入與
+驗證提示隔離，詳見 [多語言指南](I18N.md)。lint/typecheck/build 不等於功能測試。
 CI 對 master push 與指向 master 的 PR 執行上述三項檢查。
 Prisma client 在 install 的 postinstall 階段產生，不需要真實資料庫。
 
