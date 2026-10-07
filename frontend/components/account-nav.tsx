@@ -12,6 +12,7 @@ export async function AccountNav() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm sm:px-8">
         <Link href="/" className="font-medium">Boundaries</Link>
         <div className="flex flex-wrap items-center gap-4">
+          <Link href="/install" className="inline-flex min-h-11 items-center text-blue-700 underline">加入主畫面</Link>
           {user ? <>
             <Link href="/account" className="text-blue-700 underline">我的表單與填答</Link>
             <span className="max-w-40 truncate text-slate-600">{typeof displayName === "string" ? displayName : "已登入"}</span>
