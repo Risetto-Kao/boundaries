@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "codex/swipe-card-deck": false,
-      "codex/google-login-history": false
+      "codex/google-login-history": false,
+      "codex/iphone-home-screen": false
     }
   }
 }
