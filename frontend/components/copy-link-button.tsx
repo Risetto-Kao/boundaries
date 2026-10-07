@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n-provider";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface CopyLinkButtonProps {
 }
 
 export function CopyLinkButton({ label, path }: CopyLinkButtonProps) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -25,7 +27,7 @@ export function CopyLinkButton({ label, path }: CopyLinkButtonProps) {
 
   return (
     <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-      {copied ? "已複製" : label}
+      {copied ? t("copied") : label}
     </Button>
   );
 }

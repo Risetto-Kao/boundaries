@@ -1,9 +1,13 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { FormPortal } from "@/components/form-portal";
 import { getAllSurveys } from "@/lib/surveys";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "表單入口 | Boundaries" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: `${t("portal")} | Boundaries` };
+}
 
 export default async function HomePage() {
   let surveys: Awaited<ReturnType<typeof getAllSurveys>> = [];

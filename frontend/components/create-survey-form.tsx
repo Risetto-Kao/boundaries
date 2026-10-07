@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n-provider";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const MAX_QUESTIONS = 20;
-const FIXED_OPTIONS = ["Yes", "No", "Depends"] as const;
+
 
 interface CreateSurveyResult {
   surveyId: string;
@@ -23,6 +24,7 @@ interface CreateSurveyError {
 }
 
 export function CreateSurveyForm() {
+  const { t, locale } = useI18n();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState([""]);
@@ -59,13 +61,13 @@ export function CreateSurveyForm() {
     setCreateResult(null);
 
     if (!title.trim()) {
-      setErrorMessage("標題不可空白");
+      setErrorMessage(t("titleRequired"));
       return;
     }
 
     const trimmedQuestions = questions.map((question) => question.trim());
     if (trimmedQuestions.some((question) => question.length === 0)) {
-      setErrorMessage("每個問題都要有內容");
+      setErrorMessage(t("questionRequired"));
       return;
     }
 
@@ -76,6 +78,7 @@ export function CreateSurveyForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Boundaries-Locale": locale,
         },
         body: JSON.stringify({
           title: title.trim(),
@@ -87,7 +90,7 @@ export function CreateSurveyForm() {
       const payload = (await response.json()) as CreateSurveyResult | CreateSurveyError;
 
       if (!response.ok) {
-        const message = "error" in payload ? payload.error : "建立問卷失敗，請稍後重試";
+        const message = "error" in payload ? payload.error : t("createFailed");
         setErrorMessage(message);
         return;
       }
@@ -102,7 +105,7 @@ export function CreateSurveyForm() {
       setDescription("");
       setQuestions([""]);
     } catch {
-      setErrorMessage("建立問卷失敗，請稍後重試");
+      setErrorMessage(t("createFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -112,9 +115,9 @@ export function CreateSurveyForm() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">建立問卷</CardTitle>
+          <CardTitle className="text-2xl">{t("createSurvey")}</CardTitle>
           <CardDescription>
-            輸入標題、描述與 1~20 題問題。答案值固定 Yes / No / Depends，填寫時以手勢作答。
+            {t("createDescription")}
           </CardDescription>
         </CardHeader>
 
@@ -122,11 +125,11 @@ export function CreateSurveyForm() {
           <form className="flex flex-col gap-6" onSubmit={handleSubmit} aria-busy={isSubmitting}>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="survey-title">
-                標題
+                {t("title")}
               </label>
               <Input
                 id="survey-title"
-                placeholder="例如：旅遊絕交問卷"
+                placeholder={t("titlePlaceholder")}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 maxLength={200}
@@ -136,11 +139,11 @@ export function CreateSurveyForm() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="survey-description">
-                描述（可選）
+                {t("description")}
               </label>
               <Textarea
                 id="survey-description"
-                placeholder="補充這份問卷的背景說明"
+                placeholder={t("descriptionPlaceholder")}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 maxLength={1000}
@@ -149,14 +152,14 @@ export function CreateSurveyForm() {
 
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">問題列表（{questionCount}/20）</h2>
+                <h2 className="text-sm font-medium">{t("questionList", { count: questionCount })}</h2>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={addQuestion}
                   disabled={hasReachedQuestionLimit}
                 >
-                  新增問題
+                  {t("addQuestion")}
                 </Button>
               </div>
 
@@ -164,17 +167,17 @@ export function CreateSurveyForm() {
                 {questions.map((question, index) => (
                   <div key={`question-${index}`} className="rounded-lg border bg-white p-3">
                     <label className="mb-2 block text-sm font-medium" htmlFor={`question-${index}`}>
-                      問題 {index + 1}
+                      {t("questionNumber", { count: index + 1 })}
                     </label>
                     <Input
                       id={`question-${index}`}
                       value={question}
-                      placeholder={`輸入第 ${index + 1} 題`}
+                      placeholder={t("questionPlaceholder", { count: index + 1 })}
                       onChange={(event) => updateQuestion(index, event.target.value)}
                       required
                     />
                     <p className="mt-2 text-xs text-slate-500">
-                      固定答案值：{FIXED_OPTIONS.join(" / ")}（填寫以手勢選擇）
+                      {t("fixedAnswers", { options: [t("yes"), t("no"), t("depends")].join(" / ") })}
                     </p>
                   </div>
                 ))}
@@ -185,9 +188,9 @@ export function CreateSurveyForm() {
 
             <Button type="submit" disabled={!isFormValid || isSubmitting}>
               {isSubmitting && <LoadingSpinner />}
-              {isSubmitting ? "建立中..." : "建立問卷"}
+              {isSubmitting ? t("creating") : t("createSurvey")}
             </Button>
-            {isSubmitting && <p role="status" className="text-sm text-slate-600">正在建立問卷，請稍候…</p>}
+            {isSubmitting && <p role="status" className="text-sm text-slate-600">{t("creatingStatus")}</p>}
           </form>
         </CardContent>
       </Card>
@@ -195,18 +198,18 @@ export function CreateSurveyForm() {
       {createResult ? (
         <Card>
           <CardHeader>
-            <CardTitle>建立成功</CardTitle>
-            <CardDescription>已產生唯一問卷 ID：{createResult.surveyId}</CardDescription>
+            <CardTitle>{t("created")}</CardTitle>
+            <CardDescription>{t("surveyId", { id: createResult.surveyId })}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              填寫頁：
+              {t("fillPage")}:
               <Link className="ml-1 text-blue-700 underline" href={createResult.fillUrl}>
                 {createResult.fillUrl}
               </Link>
             </p>
             <p>
-              結果頁：
+              {t("resultPage")}:
               <Link className="ml-1 text-blue-700 underline" href={createResult.resultUrl}>
                 {createResult.resultUrl}
               </Link>

@@ -1,12 +1,14 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { MetadataRoute } from "next";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { t, locale } = await getI18n();
   return {
     id: "/",
     name: "Boundaries",
     short_name: "Boundaries",
-    description: "社交化問卷工具，快速找出群體共識與衝突",
-    lang: "zh-Hant",
+    description: t("siteDescription"),
+    lang: locale,
     start_url: "/",
     scope: "/",
     display: "standalone",

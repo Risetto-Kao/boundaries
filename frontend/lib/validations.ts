@@ -1,44 +1,30 @@
-import { z } from 'zod'
+import { z } from "zod";
+import { createTranslator, defaultLocale, type Locale } from "./i18n/config";
 
-// 基礎 Schema
-export const surveyIdSchema = z.string().uuid('無效的問卷 ID')
-export const nicknameSchema = z
-    .string()
-    .min(1, '暱稱不可空白')
-    .max(50, '暱稱過長（最多 50 字）')
-export const answerValueSchema = z.enum(['yes', 'no', 'depends'])
-
-// 創建問卷
-export const createSurveySchema = z.object({
-    title: z
-        .string()
-        .min(1, '標題不可空白')
-        .max(200, '標題過長（最多 200 字）'),
-    description: z
-        .string()
-        .max(1000, '說明過長（最多 1000 字）')
-        .optional()
-        .or(z.literal('')),
-    questions: z
-        .array(z.string().min(1, '問題不可空白'))
-        .min(1, '至少需要一個問題')
-        .max(20, '最多 20 個問題'),
-})
-
-// 提交答案
-export const submitResponseSchema = z.object({
+// Construct per-request schemas; never mutate Zod's global locale across users.
+export function createValidationSchemas(locale: Locale = defaultLocale) {
+  const t = createTranslator(locale);
+  const surveyIdSchema = z.string({ error: t("invalidSurveyId") }).uuid(t("invalidSurveyId"));
+  const nicknameSchema = z.string({ error: t("nicknameRequired") }).trim()
+    .min(1, t("nicknameRequired")).max(50, t("nicknameLong"));
+  const answerValueSchema = z.enum(["yes", "no", "depends"], { error: t("invalidInput") });
+  const createSurveySchema = z.object({
+    title: z.string({ error: t("titleRequired") }).trim().min(1, t("titleRequired")).max(200, t("titleLong")),
+    description: z.string({ error: t("invalidInput") }).trim().max(1000, t("descriptionLong")).optional(),
+    questions: z.array(z.string({ error: t("questionRequired") }).trim().min(1, t("questionRequired")), { error: t("questionsRequired") })
+      .min(1, t("questionsRequired")).max(20, t("questionsLimit")),
+  }, { error: t("invalidInput") });
+  const submitResponseSchema = z.object({
     surveyId: surveyIdSchema,
     nickname: nicknameSchema,
-    answers: z
-        .array(
-            z.object({
-                questionId: z.string().uuid('無效的問題 ID'),
-                value: answerValueSchema,
-            })
-        )
-        .min(1, '請至少回答一個問題'),
-})
+    answers: z.array(z.object({
+      questionId: z.string({ error: t("invalidQuestionId") }).uuid(t("invalidQuestionId")),
+      value: answerValueSchema,
+    }, { error: t("invalidInput") }), { error: t("answersRequired") }).min(1, t("answersRequired")),
+  }, { error: t("invalidInput") });
+  return { surveyIdSchema, nicknameSchema, answerValueSchema, createSurveySchema, submitResponseSchema };
+}
 
-// TypeScript 型別推導
-export type CreateSurveyInput = z.infer<typeof createSurveySchema>
-export type SubmitResponseInput = z.infer<typeof submitResponseSchema>
+export const { surveyIdSchema, nicknameSchema, answerValueSchema, createSurveySchema, submitResponseSchema } = createValidationSchemas();
+export type CreateSurveyInput = z.infer<typeof createSurveySchema>;
+export type SubmitResponseInput = z.infer<typeof submitResponseSchema>;
