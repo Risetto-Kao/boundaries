@@ -6,7 +6,7 @@ export async function HistoryNotice({ returnTo }: { returnTo: string }) {
   const { t } = await getI18n();
   let user;
   try { user = await getCurrentUser(); } catch {
-    return <p role="alert" className="mx-auto mb-5 max-w-3xl rounded-lg border bg-white p-4 text-sm text-rose-700">{t("sessionRetry")}</p>;
+    return <p role="alert" className="mb-6 feedback feedback-error">{t("sessionRetry")}</p>;
   }
-  return <p className="mx-auto mb-5 max-w-3xl rounded-lg border bg-white p-4 text-sm leading-6 text-slate-600">{user ? t("historySaved") : <>{t("guestHistory")}<Link className="ml-2 text-blue-700 underline" href={`/login?next=${encodeURIComponent(returnTo)}`}>{t("loginFirst")}</Link></>}</p>;
+  return <p className="mb-6 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground">{user ? t("historySaved") : <>{t("guestHistory")}<Link className="text-action ml-2" href={`/login?next=${encodeURIComponent(returnTo)}`}>{t("loginFirst")}</Link></>}</p>;
 }

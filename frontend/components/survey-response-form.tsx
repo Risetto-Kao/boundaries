@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Check, RotateCcw, SlidersHorizontal, X } from "l
 import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ANSWER_STYLE } from "@/lib/answer-meta";
 import type { Answer } from "@/types/survey";
 
 interface SurveyResponseFormProps {
@@ -40,6 +41,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const [isDragging, setIsDragging] = useState(false);
   const [exitAnswer, setExitAnswer] = useState<Answer | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const completionRef = useRef<HTMLDivElement | null>(null);
   const pointerStartRef = useRef<{
     id: number;
     x: number;
@@ -61,6 +63,10 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       if (swipeTimerRef.current) clearTimeout(swipeTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (allAnswered && currentIndex > 0) completionRef.current?.focus();
+  }, [allAnswered, currentIndex]);
 
   const animateAnswer = (value: Answer) => {
     const question = questions[currentIndex];
@@ -238,25 +244,28 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
           placeholder={t("nicknamePlaceholder")}
           maxLength={50}
           required
+          disabled={isSubmitting || isNavigating}
+          aria-invalid={!!errorMessage && !nickname.trim()}
+          aria-describedby={errorMessage ? "response-error" : undefined}
         />
       </div>
 
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="font-medium text-slate-700" aria-live="polite">
+          <span className="font-medium text-foreground" aria-live="polite">
             {allAnswered ? t("allDone") : t("questionProgress", { count: currentIndex + 1, total: questions.length })}
           </span>
           <Button type="button" variant="ghost" size="sm" onClick={undoAnswer} disabled={currentIndex === 0 || interactionDisabled}>
             <RotateCcw /> {t("previousQuestion")}
           </Button>
         </div>
-        <div role="progressbar" aria-label={t("answerProgress")} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answeredCount} className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-slate-900 transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${questions.length ? answeredCount / questions.length * 100 : 0}%` }} />
+        <div role="progressbar" aria-label={t("answerProgress")} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answeredCount} className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${questions.length ? answeredCount / questions.length * 100 : 0}%` }} />
         </div>
 
-        <div className="overflow-x-clip px-2 pb-8 pt-2 sm:px-4">
+        <div className="overflow-x-clip pb-5 pt-2">
           {currentQuestion ? (
-            <div className="isolate grid" aria-label={t("questionCards")}>
+            <div className="relative isolate grid" aria-label={t("questionCards")}>
               {questions.slice(currentIndex, currentIndex + 3).map((question, depth) => {
                 const active = depth === 0;
                 const reveal = active ? 0 : dragStrength;
@@ -272,29 +281,29 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
                     onPointerUp={active ? handlePointerUp : undefined}
                     onPointerCancel={active ? cancelPointer : undefined}
                     onLostPointerCapture={active ? () => { if (pointerStartRef.current) cancelPointer(); } : undefined}
-                    className={`relative col-start-1 row-start-1 flex min-h-[340px] flex-col rounded-[28px] border p-6 shadow-lg motion-reduce:transition-none! sm:min-h-[360px] sm:p-8 ${active ? "touch-pan-y select-none border-slate-200 bg-white cursor-grab active:cursor-grabbing" : "pointer-events-none border-slate-200 bg-slate-50"}`}
+                    className={`question-card col-start-1 row-start-1 flex flex-col motion-reduce:transition-none! ${active ? "relative touch-pan-y select-none cursor-grab active:cursor-grabbing" : "absolute inset-0 pointer-events-none overflow-hidden bg-brand-soft"}`}
                     style={{
                       zIndex: 3 - depth,
                       transform: active
                         ? `translate3d(${dragX}px, ${exitAnswer === "depends" ? -36 : 0}px, 0) rotate(${Math.max(-16, Math.min(16, dragX / 18))}deg)`
-                        : `translateY(${depth * 14 - reveal * 14}px) scale(${1 - depth * 0.04 + reveal * 0.04})`,
+                        : `translateY(${depth * 8 - reveal * 8}px) scale(${1 - depth * 0.04 + reveal * 0.04})`,
                       opacity: active && exitAnswer === "depends" ? 0 : 1,
                       transition: active && isDragging ? "none" : "transform 180ms ease-out, opacity 180ms ease-out",
                       ...(active && isAnimating ? { pointerEvents: "none" as const } : {}),
                     }}
                   >
-                    <div className="flex items-center justify-between text-xs font-medium tracking-wider text-slate-400">
+                    <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-brand-foreground">
                       <span>BOUNDARIES</span>
                       <span>{String(currentIndex + depth + 1).padStart(2, "0")} / {String(questions.length).padStart(2, "0")}</span>
                     </div>
-                    <h3 className="my-auto break-words py-8 text-left text-xl font-semibold leading-relaxed text-slate-900 sm:text-2xl">{question.text}</h3>
-                    <div className="flex justify-between border-t border-slate-100 pt-4 text-xs text-slate-400" aria-hidden="true">
+                    <h3 aria-live={active ? "polite" : undefined} aria-atomic="true" className="my-auto py-8 text-left text-[26px] font-extrabold leading-[1.45] tracking-tight text-brand-foreground [overflow-wrap:anywhere] sm:text-[28px]">{question.text}</h3>
+                    <div className="flex flex-wrap justify-between gap-2 border-t border-brand-foreground/30 pt-4 text-xs text-brand-foreground" aria-hidden="true">
                       <span className="flex items-center gap-1"><ArrowLeft className="size-3" /> {t("no")}</span>
                       <span>{t("doubleTap", { answer: t("depends") })}</span>
                       <span className="flex items-center gap-1">{t("yes")} <ArrowRight className="size-3" /></span>
                     </div>
                     {active && (Math.abs(dragX) > 8 || exitAnswer) ? (
-                      <div aria-hidden="true" className={`pointer-events-none absolute top-14 rounded-xl border-[3px] px-4 py-2 text-2xl font-black tracking-widest ${exitAnswer === "depends" ? "left-6 -rotate-6 border-slate-500 text-slate-600" : dragX > 0 ? "left-6 -rotate-12 border-emerald-500 text-emerald-600" : "right-6 rotate-12 border-rose-500 text-rose-600"}`} style={{ opacity: exitAnswer ? 1 : dragStrength }}>
+                      <div aria-hidden="true" className={`pointer-events-none absolute top-14 rounded-lg px-4 py-2 text-2xl font-black tracking-widest ${exitAnswer === "depends" ? "left-6 -rotate-6 answer-depends" : dragX > 0 ? "left-6 -rotate-12 answer-yes" : "right-6 rotate-12 answer-no"}`} style={{ opacity: exitAnswer ? 1 : dragStrength }}>
                         {answerLabel}
                       </div>
                     ) : null}
@@ -303,41 +312,42 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
               })}
             </div>
           ) : (
-            <div className="flex min-h-[340px] flex-col items-center justify-center rounded-[28px] border border-emerald-100 bg-emerald-50/50 px-6 text-center">
-              <div className="mb-5 rounded-full bg-emerald-100 p-4 text-emerald-700"><Check className="size-8" /></div>
-              <h3 className="text-xl font-semibold text-slate-900">{t("answeredAll")}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{t("confirmNickname")}</p>
+            <div ref={completionRef} tabIndex={-1} className="question-card flex flex-col items-center justify-center text-center">
+              <div className="mb-5 rounded-full bg-answer-yes p-3 text-answer-yes-foreground"><Check className="size-8" /></div>
+              <h3 className="text-2xl font-bold text-brand-foreground">{t("answeredAll")}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-brand-foreground">{t("confirmNickname")}</p>
             </div>
           )}
         </div>
 
         {!allAnswered && (
-          <div className="flex items-start justify-center gap-6 sm:gap-10">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {([
-              { value: "no", label: t("no"), Icon: X, style: "border-rose-200 text-rose-600 hover:bg-rose-50" },
-              { value: "depends", label: t("depends"), Icon: SlidersHorizontal, style: "border-slate-200 text-slate-600 hover:bg-slate-50" },
-              { value: "yes", label: t("yes"), Icon: Check, style: "border-emerald-200 text-emerald-600 hover:bg-emerald-50" },
-            ] as const).map(({ value, label, Icon, style }) => (
-              <div key={value} className="flex flex-col items-center gap-2">
-                <Button type="button" variant="outline" onClick={() => animateAnswer(value)} disabled={interactionDisabled} aria-label={t("answerAction", { answer: label })} className={`size-14 rounded-full bg-white shadow-sm [&_svg]:size-6 ${style}`}><Icon /></Button>
-                <span className="text-xs font-medium text-slate-500">{label}</span>
-              </div>
+              { value: "no", label: t("no"), Icon: X },
+              { value: "depends", label: t("depends"), Icon: SlidersHorizontal },
+              { value: "yes", label: t("yes"), Icon: Check },
+            ] as const).map(({ value, label, Icon }) => (
+              <Button key={value} type="button" variant="answer" onClick={() => animateAnswer(value)} disabled={interactionDisabled}
+                aria-label={t("answerAction", { answer: label })}
+                className={`min-h-14 flex-col gap-1 px-1 text-sm font-bold min-[390px]:flex-row min-[390px]:gap-2 [&_svg]:size-5 ${ANSWER_STYLE[value]}`}>
+                <Icon aria-hidden="true" />{label}
+              </Button>
             ))}
           </div>
         )}
-        <p className="text-center text-xs leading-relaxed text-slate-500">
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
           {allAnswered ? t("notSubmitted", { count: answeredCount, total: questions.length }) : t("swipeHint")}
         </p>
       </div>
 
-      {errorMessage ? <p className="text-sm text-rose-600">{errorMessage}</p> : null}
+      {errorMessage && <div id="response-error" role="alert" className="feedback feedback-error"><p>{errorMessage}</p><a href="#nickname" className="text-action text-destructive">{t("nickname")}</a></div>}
 
-      <Button type="submit" disabled={!canSubmit}>
+      <Button type="submit" disabled={!canSubmit} size="lg" className="w-full sm:w-auto">
         {(isSubmitting || isNavigating) && <LoadingSpinner />}
         {isNavigating ? t("openingResults") : isSubmitting ? t("submitting") : t("submitAnswers")}
       </Button>
       {(isSubmitting || isNavigating) && (
-        <p role="status" className="text-sm text-slate-600">
+        <p role="status" className="text-sm text-muted-foreground">
           {isNavigating ? t("submittedStatus") : t("submittingStatus")}
         </p>
       )}

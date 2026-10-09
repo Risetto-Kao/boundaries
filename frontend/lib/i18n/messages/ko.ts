@@ -1,8 +1,15 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "homeTitleLead": "먼저,",
+  "homeTitleAccent": "생각을 들려주세요.",
+  "homeDescription": "서로의 취향과 경계를 알아볼 폼을 만들어 보세요.",
+  "openExisting": "기존 폼 열기",
+  "guestStart": "로그인 없이 시작할 수 있어요.",
+  "copyFailed": "복사하지 못했어요. 주소창에서 링크를 복사해 주세요.",
+
   "language": "언어",
-  "siteDescription": "그룹의 공통점과 의견 차이를 알아보는 설문 도구.",
+  "siteDescription": "필요, 취향, 경계를 표현하고 서로의 차이를 이해하세요.",
   "portalHome": "Boundaries 설문 홈",
   "newForm": "새 설문",
   "workspace": "설문 작업 공간",
@@ -31,7 +38,7 @@ const messages = {
   "fillFormLabel": "설문 응답: {title}",
   "resultsLabel": "결과 보기: {title}",
   "createSurvey": "설문 만들기",
-  "createDescription": "제목, 설명과 질문 1~20개를 입력하세요. 응답자는 스와이프 또는 버튼으로 예, 아니요, 상황에 따라를 선택합니다.",
+  "createDescription": "1–20개의 질문으로 서로의 생각을 알아보세요.",
   "title": "제목",
   "titlePlaceholder": "예: 여행 성향 설문",
   "description": "설명 (선택)",
@@ -40,7 +47,7 @@ const messages = {
   "addQuestion": "질문 추가",
   "questionNumber": "질문 {count}",
   "questionPlaceholder": "질문 {count} 입력",
-  "fixedAnswers": "응답 선택지: {options} (스와이프 또는 버튼으로 응답)",
+  "fixedAnswers": "모든 질문의 답변: {options}.",
   "creating": "만드는 중…",
   "creatingStatus": "설문을 만들고 있습니다. 잠시 기다려 주세요…",
   "created": "설문 생성 완료",

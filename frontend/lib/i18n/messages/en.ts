@@ -1,8 +1,15 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "homeTitleLead": "Start with",
+  "homeTitleAccent": "what you think.",
+  "homeDescription": "Create a form to understand each other’s preferences and boundaries.",
+  "openExisting": "Open an existing form",
+  "guestStart": "You can start without signing in.",
+  "copyFailed": "Could not copy. Copy the link from the address bar.",
+
   "language": "Language",
-  "siteDescription": "A social survey tool to discover shared views and differences.",
+  "siteDescription": "Express your needs, preferences and boundaries, and understand your differences.",
   "portalHome": "Boundaries forms home",
   "newForm": "New form",
   "workspace": "Form workspace",
@@ -31,7 +38,7 @@ const messages = {
   "fillFormLabel": "Respond to: {title}",
   "resultsLabel": "View results: {title}",
   "createSurvey": "Create survey",
-  "createDescription": "Enter a title, description, and 1–20 questions. Respondents can swipe or tap to choose Yes, No, or Depends.",
+  "createDescription": "Start with 1–20 questions and let everyone share what they think.",
   "title": "Title",
   "titlePlaceholder": "For example: Travel compatibility",
   "description": "Description (optional)",
@@ -40,7 +47,7 @@ const messages = {
   "addQuestion": "Add question",
   "questionNumber": "Question {count}",
   "questionPlaceholder": "Enter question {count}",
-  "fixedAnswers": "Answer options: {options} (swipe or tap to answer)",
+  "fixedAnswers": "Every question offers: {options}.",
   "creating": "Creating…",
   "creatingStatus": "Creating your survey. Please wait…",
   "created": "Survey created",

@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { SurveyResponseForm } from "@/components/survey-response-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSurveyById } from "@/lib/surveys";
 import { surveyIdSchema } from "@/lib/validations";
 
@@ -30,19 +29,19 @@ export default async function SurveyPage({
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-6 sm:p-6 md:p-10">
+    <main className="page-shell page-shell-narrow">
       <HistoryNotice returnTo={`/surveys/${survey.id}`} />
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{survey.title}</CardTitle>
-            <CardDescription>{survey.description ?? t("answerHonestly")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 px-3 sm:px-6">
+        <div className="min-w-0 space-y-6">
+          <header>
+            <h1 className="page-heading">{survey.title}</h1>
+            <p className="page-description">{survey.description ?? t("answerHonestly")}</p>
+          </header>
+          <div className="min-w-0 space-y-6">
             <div className="flex flex-wrap gap-2">
               <CopyLinkButton label={t("copySurvey")} />
               <CopyLinkButton label={t("copyResults")} path={`/surveys/${survey.id}/results`} />
-              <Link className="inline-flex items-center text-sm text-blue-700 underline" href={`/surveys/${survey.id}/results`}>
+              <Link className="text-action" href={`/surveys/${survey.id}/results`}>
                 {t("currentResults")}
               </Link>
             </div>
@@ -54,8 +53,8 @@ export default async function SurveyPage({
                 text: question.text,
               }))}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </main>
   );
