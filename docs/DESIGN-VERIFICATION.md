@@ -30,6 +30,8 @@ lint、typecheck、production build 全數通過；既有 test:auth 6/6、test:i
 
 ## 部署確認與限制
 
+本次 codex/b3-design-system 的 DATABASE_URL／DIRECT_URL 已經使用者確認後，在 Vercel 設為僅限該分支 Preview 的 loopback 離線占位值。首次註冊遠端分支時暫停其自動部署，完成環境設定後即移除暫時設定；production 與其他分支設定未修改。
+
 PR merge 前確認 CI、review、合併狀態及可取得的 Preview。merge 後核對 Vercel Production 的 merge commit 並在瀏覽器確認實際頁面；部署 URL 與畫面記錄由 PR／本次交付提供。
 
 未實測：隔離資料庫的建立、提交與儲存流程、Google OAuth、登入後帳號歷史／分頁、iPhone Safari／加入主畫面、非 Mac 字型 fallback。正式站只進行安全閱讀和視覺確認，不建立或提交測試資料。
