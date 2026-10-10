@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
-import { FileText, LogIn, LogOut, Settings, Smartphone } from "lucide-react";
+import { FileText, LogIn, LogOut, SlidersHorizontal, Smartphone } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { LoginLink } from "@/components/login-link";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ export function AccountMenu({ signedIn, displayName }: { signedIn: boolean; disp
   const itemClass = "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
   return <DropdownMenu.Root>
     <DropdownMenu.Trigger asChild>
-      <Button variant="ghost" size="icon" aria-label={t("settings")} title={t("settings")}><Settings className="size-5" aria-hidden="true" /></Button>
+      <Button variant="ghost" size="icon" className="text-foreground" aria-label={t("settings")} title={t("settings")}><SlidersHorizontal className="size-5" aria-hidden="true" /></Button>
     </DropdownMenu.Trigger>
     <DropdownMenu.Portal>
       <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={16} className="z-50 w-60 max-w-[calc(100vw-32px)] rounded-xl border bg-popover p-2 text-popover-foreground shadow-lg">

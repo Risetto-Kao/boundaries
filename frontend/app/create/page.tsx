@@ -1,12 +1,9 @@
-import { HistoryNotice } from "@/components/history-notice";
-
 import { CreateSurveyForm } from "@/components/create-survey-form";
+import { getCurrentUser } from "@/lib/auth/user";
+import { getAccountDisplayName } from "@/lib/auth/display-name";
 
-export default function CreateSurveyPage() {
-  return (
-    <main className="page-shell page-shell-narrow">
-      <HistoryNotice returnTo="/create" />
-      <CreateSurveyForm />
-    </main>
-  );
+export default async function CreateSurveyPage() {
+  let user;
+  try { user = await getCurrentUser(); } catch { /* Submission retains session error handling. */ }
+  return <CreateSurveyForm signedIn={Boolean(user)} displayName={getAccountDisplayName(user?.user_metadata)} />;
 }

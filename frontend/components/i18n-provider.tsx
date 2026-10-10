@@ -30,11 +30,11 @@ export function useI18n() {
 
 export function LanguageSwitcher() {
   const { locale, t, setLocale, isChanging } = useI18n();
-  return <label className="inline-flex min-h-11 items-center gap-2 text-foreground">
+  return <label className="language-control">
     <Globe className="size-5" aria-hidden="true" />
     <select aria-label={t("language")} value={locale} disabled={isChanging}
       onChange={(event) => { if (isLocale(event.target.value)) setLocale(event.target.value); }}
-      className="min-h-11 max-w-32 rounded-lg border border-border bg-card px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-ring">
+      className="focus-visible:outline-2 focus-visible:outline-ring">
       {(Object.keys(languages) as Locale[]).map((value) => <option key={value} value={value} lang={value}>{languages[value].name}</option>)}
     </select>
   </label>;
