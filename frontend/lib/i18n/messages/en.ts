@@ -115,6 +115,7 @@ const messages = {
   "loginFailed": "Sign-in failed or the connection was interrupted. Try again.",
   "loginPreparing": "Sign-in is being prepared. You can still use guest mode.",
   "loginGoogle": "Sign in with Google",
+  "loginLine": "Sign in with LINE",
   "returnService": "Return to app",
   "continueGuest": "Continue as guest",
   "privacyGuest": "Guest mode doesn't create an account or personal history. Forms and answers are still saved in shared surveys. Guest history isn't added to an account after signing in.",

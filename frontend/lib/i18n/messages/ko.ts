@@ -115,6 +115,7 @@ const messages = {
   "loginFailed": "로그인이 완료되지 않았거나 연결이 끊겼습니다. 다시 시도하세요.",
   "loginPreparing": "로그인 서비스를 준비 중입니다. 게스트 모드는 사용할 수 있습니다.",
   "loginGoogle": "Google로 로그인",
+  "loginLine": "LINE으로 로그인",
   "returnService": "서비스로 돌아가기",
   "continueGuest": "게스트로 계속",
   "privacyGuest": "게스트 모드에서는 계정이나 개인 기록이 생성되지 않습니다. 설문과 응답은 공유 설문에 저장되며, 로그인 후 게스트 기록이 계정에 자동 추가되지는 않습니다.",

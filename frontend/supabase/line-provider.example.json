@@ -1,0 +1,17 @@
+{
+  "provider_type": "oauth2",
+  "identifier": "custom:line",
+  "name": "LINE",
+  "client_id": "<LINE_LOGIN_CHANNEL_ID>",
+  "client_secret": "<LINE_LOGIN_CHANNEL_SECRET>",
+  "authorization_url": "https://access.line.me/oauth2/v2.1/authorize",
+  "token_url": "https://api.line.me/oauth2/v2.1/token",
+  "userinfo_url": "https://api.line.me/oauth2/v2.1/userinfo",
+  "scopes": [
+    "openid",
+    "profile"
+  ],
+  "email_optional": true,
+  "pkce_enabled": true,
+  "enabled": true
+}
