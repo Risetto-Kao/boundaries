@@ -109,7 +109,7 @@ pnpm --dir frontend build
 8. 資料庫無法存取時顯示紀錄載入失敗，而不是空白成功紀錄。
 
 隔離的開發 Supabase 專案已完成建表、Google provider、callback 與資料庫連線設定。
-Google 真實授權及建立／填答紀錄已驗證；LINE provider、跨帳號與跨裝置流程仍待完成。
+Google／LINE 真實授權、建立／填答紀錄及兩個帳號間的隔離已驗證；跨裝置流程仍待完成。
 
 ## 5. 後續擴充
 
@@ -170,7 +170,9 @@ LINE 使用 `custom:line`，與 Google 共用 callback 與帳號紀錄。
 [官方帳號與 Messaging API](https://developers.line.biz/en/docs/messaging-api/getting-started/)。
 各環境使用各自的 Supabase 專案與 callback，密鑰不得提交到 Git。
 
-## LINE 整合驗證紀錄（2026-10-10）
+## LINE 初期整合驗證紀錄（2026-10-10）
+
+以下為設定尚未完成時的紀錄；最新狀態見「LINE 真實登入與官方帳號驗證」。
 
 - 7 個 auth、5 個 i18n 單元測試通過；lint、typecheck、build 通過。
 - Arc 實際檢視隔離的離線 localhost:3100/login：Google、LINE 與訪客入口皆顯示。
@@ -193,7 +195,7 @@ LINE 使用 `custom:line`，與 Google 共用 callback 與帳號紀錄。
 - 重新登入同一 Google 帳號，原有建立／填答紀錄仍在，訪客表單沒有加入個人清單。
 - 只讀交易切換 anon／authenticated role，直接讀取 surveys 皆被拒絕（42501）；公開 Supabase REST API 讀取也被拒絕。
 - 這次保留兩份明確標示的開發驗證表單供檢查，沒有寫入正式環境。
-- 尚未驗證第二個帳號、另一台裝置、手機 Safari 或 LINE 真實 OAuth。
+- 當時尚未驗證第二個帳號、另一台裝置、手機 Safari 或 LINE 真實 OAuth；後續 LINE 與帳號隔離結果見下節。
 
 ### 本機開發連線的 TLS 憑證
 
@@ -211,7 +213,9 @@ Supabase session pooler 使用 Supabase CA。若收到 SELF_SIGNED_CERT_IN_CHAIN
 更新密碼後需重新驗證連線；若執行中的程序保留舊連線，重新啟動開發伺服器。
 
 
-## LINE provider 設定驗證（2026-10-10）
+## LINE provider 初期設定驗證（2026-10-10）
+
+以下為真實登入前的導向驗證紀錄；最新狀態見下節。
 
 - Boundaries Provider 內已建立 LINE Login channel；開發 callback 指向 Boundaries Dev 的 Auth callback。
 - Channel Secret 已由管理者重新產生，僅貼入隔離 Supabase 開發專案並由管理者提交。
@@ -225,3 +229,23 @@ LINE Web Login 的 ID token 使用 HS256，這裡使用 OAuth2 provider 的 user
 而非切換為 OIDC discovery。issuer／JWKS 欄位依官方端點設定，不能以略過 token 驗證處理差異。
 參考 [LINE ID token 文件](https://developers.line.biz/en/docs/line-login/verify-id-token/) 及
 [Supabase OAuth2 provider 實作](https://github.com/supabase/auth/blob/master/internal/api/provider/custom_oauth.go)。
+
+
+## LINE 真實登入與官方帳號驗證（2026-10-10）
+
+僅使用隔離的 Boundaries Dev 與 localhost:3000；正式登入仍未啟用。
+
+- 管理者已啟用 Supabase custom:line，Arc 真實 LINE 登入後回到帳號頁。
+- 在 LINE 帳號透過網站建立標示「開發驗證」的表單並回答 Yes；建立及填答清單都有紀錄，可展開自己的答案。
+- 只讀資料庫查詢確認建立者是 LINE identity，填答與表單歸屬同一 Auth user，答案為 Yes。
+- Google 與 LINE 是兩個不同 Supabase user ID。LINE 帳號清單未出現 Google 或訪客驗證表單；
+  登出 LINE 再登入 Google，Google 原有紀錄仍存在，未出現 LINE 或訪客驗證表單。
+  這項驗證涵蓋兩個帳號依序登入同一 Arc；尚未涵蓋兩個同時登入的 browser profile。
+- 目前保留三份開發驗證表單（Google、訪客、LINE），沒有寫入正式資料庫。
+- 台灣 Boundaries 官方帳號（@025ijuxn）已建立；管理者已完成 Manager 資料使用同意及 Messaging API 條款。
+- Messaging API 已啟用並綁到既有 Boundaries Provider；LINE Login channel 已連結該官方帳號。
+  應用程式登入不使用 Messaging API access token，未新增機器人傳訊功能。
+- Messaging API 設定的網站隱私權政策／使用條款連結目前留白（介面標示 optional），須在公開草稿確認後補上。
+- LINE Login channel 維持 Developing，尚未發布。跨裝置與手機 Safari 尚未驗證。
+- 正式資料庫仍未執行 account-history.sql；正式 Supabase provider、redirect 與 Vercel 登入環境設定仍待 rollout。
+  正式開關須在管理者完成正式資料庫 SQL 後才啟用，不可把開發連線部署到正式網站。
