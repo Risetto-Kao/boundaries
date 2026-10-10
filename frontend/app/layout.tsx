@@ -11,7 +11,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t("siteDescription"),
     applicationName: "Boundaries",
     appleWebApp: { capable: true, title: "Boundaries", statusBarStyle: "default" },
-    icons: { apple: "/icons/apple-touch-icon.png" },
+    icons: {
+      icon: [{ url: "/assets/brand/favicon.ico", sizes: "16x16 32x32 48x48" }, { url: "/assets/brand/favicon.svg", type: "image/svg+xml" }],
+      apple: "/assets/brand/apple-touch-icon-180.png",
+    },
     other: { "apple-mobile-web-app-capable": "yes" },
   };
 }
@@ -20,7 +23,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#FCFCFF",
 };
 
 export default async function RootLayout({

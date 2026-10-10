@@ -1,32 +1,36 @@
-import { LanguageSwitcher } from "@/components/i18n-provider";
-import { getI18n } from "@/lib/i18n/server";
 import Link from "next/link";
+import { Brand } from "@/components/brand";
+import { LanguageSwitcher } from "@/components/i18n-provider";
+import { buttonVariants } from "@/components/ui/button";
+import { getI18n } from "@/lib/i18n/server";
 import { getCurrentUser } from "@/lib/auth/user";
 
 export async function AccountNav() {
   const { t } = await getI18n();
   let user;
-  try { user = await getCurrentUser(); } catch {
-    return <nav className="border-b bg-white px-5 py-3 text-sm" aria-label={t("account")}><span role="status">{t("sessionUnavailable")}</span> · <Link href="/login" className="text-blue-700 underline">{t("loginAgain")}</Link><LanguageSwitcher /></nav>;
-  }
+  let unavailable = false;
+  try { user = await getCurrentUser(); } catch { unavailable = true; }
   const displayName = user?.user_metadata.full_name ?? user?.user_metadata.name;
   return (
-    <nav className="border-b border-slate-200 bg-white" aria-label={t("account")}>
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm sm:px-8">
-        <Link href="/" className="font-medium">Boundaries</Link>
-        <div className="flex flex-wrap items-center gap-4">
+    <header className="border-b border-border">
+      <nav className="site-nav" aria-label={t("account")}>
+        <Brand />
+        <div className="nav-actions text-sm">
           <LanguageSwitcher />
-          <Link href="/install" className="inline-flex min-h-11 items-center text-blue-700 underline">{t("install")}</Link>
-          {user ? <>
-            <Link href="/account" className="text-blue-700 underline">{t("myForms")}</Link>
-            <span className="max-w-40 truncate text-slate-600">{typeof displayName === "string" ? displayName : t("signedIn")}</span>
-            <form action="/auth/signout" method="post"><button className="min-h-11 rounded-lg border px-3">{t("signOut")}</button></form>
+          <Link href="/install" className="text-action">{t("install")}</Link>
+          {unavailable ? <>
+            <span role="status" className="text-destructive">{t("sessionUnavailable")}</span>
+            <Link href="/login" className="text-action">{t("loginAgain")}</Link>
+          </> : user ? <>
+            <Link href="/account" className="text-action">{t("myForms")}</Link>
+            <span className="max-w-32 truncate text-muted-foreground">{typeof displayName === "string" ? displayName : t("signedIn")}</span>
+            <form action="/auth/signout" method="post"><button className={buttonVariants({ variant: "outline", size: "sm" })}>{t("signOut")}</button></form>
           </> : <>
-            <span className="text-slate-500">{t("guest")}</span>
-            <Link href="/login" className="min-h-11 rounded-lg bg-slate-900 px-4 py-3 text-white">{t("loginSave")}</Link>
+            <span className="text-muted-foreground">{t("guest")}</span>
+            <Link href="/login" className="text-action">{t("loginSave")}</Link>
           </>}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

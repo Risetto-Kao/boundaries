@@ -1,8 +1,15 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "homeTitleLead": "まずは、",
+  "homeTitleAccent": "あなたの考えを。",
+  "homeDescription": "フォームを作って、お互いの好みや境界線を知ろう。",
+  "openExisting": "既存のフォームを開く",
+  "guestStart": "ログインしなくても始められます。",
+  "copyFailed": "コピーできませんでした。アドレスバーからリンクをコピーしてください。",
+
   "language": "言語",
-  "siteDescription": "みんなの共通点や意見の違いがわかるアンケートツール。",
+  "siteDescription": "ニーズ、好み、境界線を伝えて、お互いの違いを知ろう。",
   "portalHome": "Boundaries フォーム一覧",
   "newForm": "新しいフォーム",
   "workspace": "フォームワークスペース",
@@ -31,7 +38,7 @@ const messages = {
   "fillFormLabel": "回答する：{title}",
   "resultsLabel": "結果を見る：{title}",
   "createSurvey": "アンケートを作成",
-  "createDescription": "タイトル、説明、1〜20問を入力してください。回答者はスワイプやボタンで「はい・いいえ・場合による」を選べます。",
+  "createDescription": "1〜20問で、みんなの考えを聞いてみよう。",
   "title": "タイトル",
   "titlePlaceholder": "例：旅行の相性アンケート",
   "description": "説明（任意）",
@@ -40,7 +47,7 @@ const messages = {
   "addQuestion": "質問を追加",
   "questionNumber": "質問 {count}",
   "questionPlaceholder": "質問 {count} を入力",
-  "fixedAnswers": "回答の選択肢：{options}（スワイプやボタンで回答）",
+  "fixedAnswers": "各質問の回答：{options}。",
   "creating": "作成中…",
   "creatingStatus": "アンケートを作成しています…",
   "created": "作成しました",

@@ -10,9 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function InstallPage() {
   const { t } = await getI18n();
   return (
-    <main className="mx-auto max-w-xl px-5 py-10 sm:px-8">
-      <h1 className="text-2xl font-bold">{t("installTitle")}</h1>
-      <p className="mt-4 text-slate-600">{t("installDescription")}</p>
+    <main className="page-shell page-shell-narrow">
+      <h1 className="page-heading">{t("installTitle")}</h1>
+      <p className="mt-4 text-muted-foreground">{t("installDescription")}</p>
       <ol className="mt-6 list-decimal space-y-4 pl-6">
         <li>{t("installStep1")}</li>
         <li>{t("installStep2")}</li>
@@ -20,8 +20,8 @@ export default async function InstallPage() {
         <li>{t("installStep4")}</li>
         <li>{t("installStep5")}</li>
       </ol>
-      <p className="mt-6 text-sm text-slate-600">{t("installHint")}</p>
-      <Link href="/" className="mt-8 inline-flex min-h-11 items-center rounded-lg bg-slate-900 px-4 text-white">{t("backPortal")}</Link>
+      <p className="mt-6 text-sm text-muted-foreground">{t("installHint")}</p>
+      <Link href="/" className="text-action mt-8">{t("backPortal")}</Link>
     </main>
   );
 }

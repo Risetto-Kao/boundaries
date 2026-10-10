@@ -4,6 +4,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { useState, useSyncExternalStore } from "react";
 import { LayoutGrid, List } from "lucide-react";
 
+import { AnswerBadge, ANSWER_ICON } from "@/components/answer-badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getAnswerOptions, ANSWER_STYLE } from "@/lib/answer-meta";
@@ -43,11 +44,11 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
 
   return (
     <div className="min-w-0 space-y-4">
-      <div role="group" aria-label={t("resultsMode")} className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 sm:inline-grid">
+      <div role="group" aria-label={t("resultsMode")} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:inline-grid">
         <Button
           type="button"
           variant="ghost"
-          className={cn("h-11 px-3", view === null ? "bg-white shadow-sm md:bg-transparent md:shadow-none" : view === "question" && "bg-white shadow-sm")}
+          className={cn("h-11 px-3", view === null ? "bg-card text-brand md:bg-transparent md:text-foreground" : view === "question" && "bg-card text-brand")}
           aria-pressed={activeView === "question"}
           aria-controls="question-results"
           onClick={() => setView("question")}
@@ -58,7 +59,7 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
         <Button
           type="button"
           variant="ghost"
-          className={cn("h-11 px-3", view === null ? "md:bg-white md:shadow-sm" : view === "matrix" && "bg-white shadow-sm")}
+          className={cn("h-11 px-3", view === null ? "md:bg-card md:text-brand" : view === "matrix" && "bg-card text-brand")}
           aria-pressed={activeView === "matrix"}
           aria-controls="matrix-results"
           onClick={() => setView("matrix")}
@@ -73,26 +74,27 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
           const unanswered = participants.filter((participant) => !answers[participant.id]?.[question.id]);
 
           return (
-            <section key={question.id} aria-labelledby={`question-${question.id}`} className="min-w-0 space-y-4 rounded-xl border bg-white p-4">
+            <section key={question.id} aria-labelledby={`question-${question.id}`} className="min-w-0 space-y-5 border-t border-border py-6">
               <div>
-                <p className="mb-1 text-xs font-semibold text-slate-500">Q{index + 1}</p>
-                <h2 id={`question-${question.id}`} className="text-base font-semibold leading-relaxed text-slate-900 [overflow-wrap:anywhere]">
+                <p className="mb-1 text-xs font-semibold text-muted-foreground">Q{index + 1}</p>
+                <h2 id={`question-${question.id}`} className="text-lg font-bold leading-relaxed text-foreground [overflow-wrap:anywhere]">
                   {question.text}
                 </h2>
               </div>
               <div className="grid min-w-0 gap-3 sm:grid-cols-3">
                 {getAnswerOptions(t).map(({ value, label }) => {
+                  const Icon = ANSWER_ICON[value];
                   const respondents = participants.filter((participant) => answers[participant.id]?.[question.id] === value);
 
                   return (
-                    <div key={value} className={cn("min-w-0 rounded-lg border p-3", ANSWER_STYLE[value])}>
+                    <div key={value} className={cn("min-w-0 rounded-lg p-4", ANSWER_STYLE[value])}>
                       <h3 className="mb-2 flex items-center justify-between gap-2 font-semibold">
-                        {label}<span className="text-xs font-normal">{t("peopleCount", { count: respondents.length })}</span>
+                        <span className="inline-flex items-center gap-2"><Icon size={20} aria-hidden="true" />{label}</span><span className="text-xs font-normal">{t("peopleCount", { count: respondents.length })}</span>
                       </h3>
                       {respondents.length > 0 ? (
                         <ul className="flex flex-wrap gap-2">
                           {respondents.map((participant) => (
-                            <li key={participant.id} className="max-w-full rounded-md bg-white/80 px-2 py-1 text-sm text-slate-800 [overflow-wrap:anywhere]">
+                            <li key={participant.id} className="max-w-full rounded-md bg-card px-2 py-1 text-sm text-foreground [overflow-wrap:anywhere]">
                               {participant.nickname}
                             </li>
                           ))}
@@ -105,7 +107,7 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
                 })}
               </div>
               {unanswered.length > 0 && (
-                <p className="text-xs leading-relaxed text-slate-500 [overflow-wrap:anywhere]">
+                <p className="text-xs leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
                   {t("unanswered")}: {unanswered.map((participant) => participant.nickname).join(", ")}
                 </p>
               )}
@@ -115,32 +117,30 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
       </div>
 
       <div id="matrix-results" className={cn("min-w-0", view === null ? "hidden md:block" : view !== "matrix" && "hidden")}>
-        <Table>
+        <Table aria-label={t("matrixView")} className="table-fixed" style={{ width: 260 + participants.length * 176, minWidth: "100%" }}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="min-w-64">{t("questionPeople")}</TableHead>
+              <TableHead scope="col" className="w-[260px] py-4">{t("questionPeople")}</TableHead>
               {participants.map((participant) => (
-                <TableHead key={participant.id} scope="col">{participant.nickname}</TableHead>
+                <TableHead key={participant.id} scope="col" className="w-44 px-4 py-4 align-top whitespace-normal [overflow-wrap:anywhere]">{participant.nickname}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {questions.map((question, index) => (
               <TableRow key={question.id}>
-                <TableHead scope="row" className="min-w-64 max-w-sm py-2 align-top whitespace-normal [overflow-wrap:anywhere]">
-                  <div className="font-medium">Q{index + 1}</div>
-                  <div className="font-normal text-slate-700">{question.text}</div>
+                <TableHead scope="row" className="w-[260px] py-5 align-top whitespace-normal [overflow-wrap:anywhere]">
+                  <div className="mb-2 text-xs font-bold text-brand">Q{index + 1}</div>
+                  <div className="font-semibold text-foreground">{question.text}</div>
                 </TableHead>
                 {participants.map((participant) => {
                   const answer = answers[participant.id]?.[question.id];
                   return (
-                    <TableCell key={participant.id}>
+                    <TableCell key={participant.id} className="px-4 py-5 align-top">
                       {answer ? (
-                        <span className={cn("inline-flex rounded-md border px-2 py-1 text-xs font-semibold", ANSWER_STYLE[answer])}>
-                          {t(answer)}
-                        </span>
+                        <AnswerBadge answer={answer} label={t(answer)} />
                       ) : (
-                        <span className="text-slate-400" aria-label={t("unanswered")}>-</span>
+                        <span className="text-muted-foreground" aria-label={t("unanswered")}>-</span>
                       )}
                     </TableCell>
                   );

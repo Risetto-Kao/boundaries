@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boundaries — 視覺方向比較</title>
+<link rel="stylesheet" href="prototype.css">
+</head>
+<body>
+<header class="studio">
+  <div class="studio-title"><strong>Boundaries</strong><span>視覺探索 · Phase 1 / 2</span><span class="draft">方向草案</span></div>
+  <div class="tools">
+    <div class="tool-group" aria-label="視覺方向">
+      <button data-mode="b3" aria-pressed="true">B3 活潑高彩度</button><button data-mode="b2" aria-pressed="false">B2 上一版</button><button data-mode="b-revision" aria-pressed="false">B2／B3 比較</button><button data-mode="b" aria-pressed="false">B 原版</button><button data-mode="b-compare" aria-pressed="false">B 前後比較</button><button data-mode="compare" aria-pressed="false">原三方向</button><button data-mode="a" aria-pressed="false">A</button><button data-mode="c" aria-pressed="false">C</button>
+    </div>
+    <div class="tool-group" aria-label="原型畫面">
+      <button data-page="portal" aria-pressed="true">表單入口</button><button data-page="create" aria-pressed="false">建立</button><button data-page="fill" aria-pressed="false">填答</button><button data-page="results" aria-pressed="false">結果</button>
+    </div>
+    <div class="tool-group" aria-label="畫面尺寸"><button data-size="desktop" aria-pressed="true">桌面</button><button data-size="mobile" aria-pressed="false">手機 390</button><button data-size="small" aria-pressed="false">小螢幕 320</button></div>
+  </div>
+  <p class="studio-caption">B3 修正版：高彩度、粗字重、無襯線排版。保留精簡首頁與主 CTA；可和 B2 直接比較。互動只在本頁模擬。</p>
+</header>
+<main>
+  <section id="previews" class="previews compare" aria-label="三種設計原型"></section>
+  <section class="revision-notes" aria-label="B3 修正方向"><div><span class="direction-id">B3 / COMMON GROUND</span><h2>清楚，也可以有趣。</h2><p>拿掉宋體與斜體。標題和題目改用粗字重無襯線，英文使用 Avenir Next；中文以 PingFang TC 搭配，內文保持好讀的正常字重。</p><p>沿用精簡首頁與清楚 CTA；色彩更直接，填答題卡用實色紫，三個回答用飽和綠、珊瑚紅與亮黃。</p></div><div><h3>五色分工，更高彩度</h3><div class="palette"><span style="--swatch:#2948ff">電光藍 · 主 CTA</span><span style="--swatch:#27ce7b">鮮綠 · Yes</span><span style="--swatch:#ff5c48">珊瑚紅 · No</span><span style="--swatch:#ffdc2e">亮黃 · 看狀況</span><span style="--swatch:#6835ef">紫 · 題目／導覽</span></div><p>亮色回答搭配深色文字，紫色題卡搭配白字；讓色彩更鮮明，同時保留閱讀對比。每種答案都有文字與圖示。</p><p><b>取捨：</b>更直接、更活潑，也比 B2 少了安靜感。趣味來自排版與互動色彩，沒有加入額外動畫、裝飾或產品功能。字體與品牌尚未定案。</p></div></section>
+  <section class="directions" aria-label="方案概念與取捨">
+    <article><span class="direction-id">A / PAPER & VOICE</span><h2>紙感編輯</h2><p>像翻開一份可以一起填寫的生活刊物。宋體標題、暖紙色與細分隔線，讓題目成為畫面的中心。</p><div class="palette"><span style="--swatch:#f5f1e9">#F5F1E9 紙色</span><span style="--swatch:#282620">#282620 墨色</span><span style="--swatch:#97442f">#97442F 陶土</span></div><p><b>排版：</b>Songti TC／Noto Serif TC 標題，PingFang TC／Noto Sans TC 內文。主標 36–42、題目 26、內文 16px；8px 間距基準，4px 控制項、8px 題卡圓角。中等密度，圖示 1.5px 線條。</p><p><b>適合：</b>在旅行、共同生活與關係話題中，帶出表達個人想法的份量。</p><p><b>取捨：</b>宋體字型的裝置差異較大，正式導入需確認字型載入；長標題要控制行距，避免變得過於文藝或嚴肅。</p></article>
+    <article><span class="direction-id">B / COMMON GROUND</span><h2>清晰人文</h2><p>像一段舒服、直接的對話。無襯線文字、深森林綠與淺鼠尾草色，透過少量柔和表面建立親近感。</p><div class="palette"><span style="--swatch:#fafbf8">#FAFBF8 暖白</span><span style="--swatch:#25372f">#25372F 森林</span><span style="--swatch:#35634b">#35634B 葉綠</span></div><p><b>排版：</b>PingFang TC／Noto Sans TC 全站，標題 32–36、題目 25、內文 16px。8px 間距基準，12px 控制項、16px 題卡圓角。中等密度，圖示 1.75px 圓端點。</p><p><b>適合：</b>操作容易理解，適合廣泛使用者與日常輕量話題，移動裝置容易維持一致。</p><p><b>取捨：</b>識別度容易接近一般生活工具；綠色品牌與 Yes 的語意需分開管理，避免讓 No 看起來像錯誤。</p></article>
+    <article><span class="direction-id">C / CLEAR PERSPECTIVES</span><h2>緊湊刊物</h2><p>像一份清楚排列的觀點索引。冷白、深藍、較強的字級對比與俐落規則線，讓多人的差異容易掃讀。</p><div class="palette"><span style="--swatch:#f7f8fb">#F7F8FB 冷白</span><span style="--swatch:#202b42">#202B42 深墨</span><span style="--swatch:#304e8a">#304E8A 鈷藍</span></div><p><b>排版：</b>PingFang TC／Noto Sans TC 中文；英文刊頭以 Georgia 作排版對比。標題 30–34、題目 25、內文 16px。4px 間距基準，2px 控制項、0px 題卡圓角。較高資訊密度，圖示 1.5px 方正比例。</p><p><b>適合：</b>多人結果矩陣與反覆回訪，頁面更緊湊，文字層級明確。</p><p><b>取捨：</b>更理性、較少溫度；需用平實文案與充足觸控尺寸維持親切，避免像研究報告或後台。</p></article>
+  </section>
+  <footer class="studio-footer">只探索視覺，不代表定案。沒有新 Logo、相容度分數、聊天、模板市集或新產品功能。<a href="audit.md">閱讀完整設計盤點與驗證記錄</a></footer>
+</main>
+<div id="announcement" class="sr-only" aria-live="polite"></div>
+<script src="prototype.js"></script>
+</body>
+</html>

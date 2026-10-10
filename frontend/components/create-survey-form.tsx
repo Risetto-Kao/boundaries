@@ -6,7 +6,8 @@ import Link from "next/link";
 
 import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Plus, ArrowRight } from "lucide-react";
+import { CopyLinkButton } from "@/components/copy-link-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -52,6 +53,7 @@ export function CreateSurveyForm() {
     }
 
     setQuestions((prev) => [...prev, ""]);
+    requestAnimationFrame(() => document.getElementById(`question-${questionCount}`)?.focus());
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -112,111 +114,56 @@ export function CreateSurveyForm() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">{t("createSurvey")}</CardTitle>
-          <CardDescription>
-            {t("createDescription")}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form className="flex flex-col gap-6" onSubmit={handleSubmit} aria-busy={isSubmitting}>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="survey-title">
-                {t("title")}
-              </label>
-              <Input
-                id="survey-title"
-                placeholder={t("titlePlaceholder")}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                maxLength={200}
-                required
-              />
+    <div className="space-y-8">
+      <header>
+        <h1 className="page-heading">{t("newForm")}</h1>
+        <p className="page-description">{t("createDescription")}</p>
+      </header>
+      <form className="space-y-8" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+        <fieldset disabled={isSubmitting} className="min-w-0 space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold" htmlFor="survey-title">{t("title")}</label>
+            <Input id="survey-title" placeholder={t("titlePlaceholder")} value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} required
+              aria-invalid={!!errorMessage && !title.trim()} aria-describedby={errorMessage && !title.trim() ? "create-error" : undefined} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold" htmlFor="survey-description">{t("description")}</label>
+            <Textarea id="survey-description" placeholder={t("descriptionPlaceholder")} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={1000} />
+          </div>
+          <section className="page-section space-y-5" aria-labelledby="questions-heading">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="questions-heading" className="text-xl font-bold">{t("questionList", { count: questionCount })}</h2>
+              <Button type="button" variant="outline" onClick={addQuestion} disabled={hasReachedQuestionLimit}><Plus aria-hidden="true" />{t("addQuestion")}</Button>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="survey-description">
-                {t("description")}
-              </label>
-              <Textarea
-                id="survey-description"
-                placeholder={t("descriptionPlaceholder")}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                maxLength={1000}
-              />
-            </div>
-
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">{t("questionList", { count: questionCount })}</h2>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addQuestion}
-                  disabled={hasReachedQuestionLimit}
-                >
-                  {t("addQuestion")}
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {questions.map((question, index) => (
-                  <div key={`question-${index}`} className="rounded-lg border bg-white p-3">
-                    <label className="mb-2 block text-sm font-medium" htmlFor={`question-${index}`}>
-                      {t("questionNumber", { count: index + 1 })}
-                    </label>
-                    <Input
-                      id={`question-${index}`}
-                      value={question}
-                      placeholder={t("questionPlaceholder", { count: index + 1 })}
-                      onChange={(event) => updateQuestion(index, event.target.value)}
-                      required
-                    />
-                    <p className="mt-2 text-xs text-slate-500">
-                      {t("fixedAnswers", { options: [t("yes"), t("no"), t("depends")].join(" / ") })}
-                    </p>
+            <p className="text-sm text-muted-foreground">{t("fixedAnswers", { options: [t("yes"), t("no"), t("depends")].join(" / ") })}</p>
+            <div className="space-y-5">
+              {questions.map((question, index) => (
+                <div key={`question-${index}`} className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] gap-3">
+                  <span aria-hidden="true" className="pt-8 text-sm font-bold text-brand">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="min-w-0 space-y-2">
+                    <label className="block text-sm font-semibold" htmlFor={`question-${index}`}>{t("questionNumber", { count: index + 1 })}</label>
+                    <Textarea id={`question-${index}`} value={question} placeholder={t("questionPlaceholder", { count: index + 1 })} onChange={(event) => updateQuestion(index, event.target.value)} required className="min-h-20"
+                      aria-invalid={!!errorMessage && !question.trim()} aria-describedby={errorMessage && !question.trim() ? "create-error" : undefined} />
                   </div>
-                ))}
-              </div>
-            </section>
-
-            {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
-
-            <Button type="submit" disabled={!isFormValid || isSubmitting}>
-              {isSubmitting && <LoadingSpinner />}
-              {isSubmitting ? t("creating") : t("createSurvey")}
-            </Button>
-            {isSubmitting && <p role="status" className="text-sm text-slate-600">{t("creatingStatus")}</p>}
-          </form>
-        </CardContent>
-      </Card>
-
-      {createResult ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("created")}</CardTitle>
-            <CardDescription>{t("surveyId", { id: createResult.surveyId })}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              {t("fillPage")}:
-              <Link className="ml-1 text-blue-700 underline" href={createResult.fillUrl}>
-                {createResult.fillUrl}
-              </Link>
-            </p>
-            <p>
-              {t("resultPage")}:
-              <Link className="ml-1 text-blue-700 underline" href={createResult.resultUrl}>
-                {createResult.resultUrl}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      ) : null}
+                </div>
+              ))}
+            </div>
+          </section>
+        </fieldset>
+        {errorMessage && <div id="create-error" role="alert" className="feedback feedback-error"><p>{errorMessage}</p>{!title.trim() ? <a href="#survey-title" className="text-action text-destructive">{t("title")}</a> : questions.some(q => !q.trim()) && <a href={`#question-${questions.findIndex(q => !q.trim())}`} className="text-action text-destructive">{t("questionNumber", { count: questions.findIndex(q => !q.trim()) + 1 })}</a>}</div>}
+        <div className="page-section">
+          <Button type="submit" disabled={!isFormValid || isSubmitting} className="w-full sm:w-auto" size="lg">{isSubmitting ? <LoadingSpinner /> : <ArrowRight aria-hidden="true" />}{isSubmitting ? t("creating") : t("createSurvey")}</Button>
+          {isSubmitting && <p role="status" className="mt-3 text-sm text-muted-foreground">{t("creatingStatus")}</p>}
+        </div>
+      </form>
+      {createResult && <section role="status" className="feedback feedback-success space-y-4">
+        <h2 className="flex items-center gap-2 text-xl font-bold"><Check size={24} aria-hidden="true" />{t("created")}</h2>
+        <div className="flex flex-wrap gap-3">
+          <CopyLinkButton label={t("copySurvey")} path={createResult.fillUrl} />
+          <CopyLinkButton label={t("copyResults")} path={createResult.resultUrl} />
+        </div>
+        <div className="flex flex-wrap gap-5"><Link href={createResult.fillUrl} className="text-action">{t("openForm")}</Link><Link href={createResult.resultUrl} className="text-action">{t("viewResults")}</Link></div>
+      </section>}
     </div>
   );
 }

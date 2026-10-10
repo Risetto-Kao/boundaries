@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { SurveyResults } from "@/components/survey-results";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { getSurveyMatrixData } from "@/lib/surveys";
 import { surveyIdSchema } from "@/lib/validations";
 
@@ -33,30 +33,30 @@ export default async function SurveyResultPage({
   const fillPath = `/surveys/${matrix.survey.id}`;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-3 sm:p-6 md:p-10">
+    <main className="page-shell">
       <div className="mx-auto min-w-0 w-full max-w-6xl">
-        <Card>
-          <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="leading-snug [overflow-wrap:anywhere]">{t("resultsTitle", { title: matrix.survey.title })}</CardTitle>
-            <CardDescription className="[overflow-wrap:anywhere]">
+        <div className="min-w-0 space-y-6">
+          <header>
+            <h1 className="page-heading">{t("resultsTitle", { title: matrix.survey.title })}</h1>
+            <p className="page-description">
               {matrix.survey.description ?? t("resultsDescription")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="min-w-0 space-y-4 px-4 text-sm sm:px-6">
+            </p>
+          </header>
+          <div className="min-w-0 space-y-6">
             <div className="flex flex-wrap gap-2">
               <CopyLinkButton label={t("copyResults")} />
               <CopyLinkButton label={t("copySurvey")} path={fillPath} />
-              <Link className="inline-flex items-center rounded-md bg-slate-900 px-3 py-2 text-white" href={fillPath}>
+              <Link className={buttonVariants()} href={fillPath}>
                 {t("inviteFriends")}
               </Link>
             </div>
 
-            <p className="text-slate-600">
+            <p className="text-muted-foreground">
               {t("resultsSummary", { people: matrix.participants.length, questions: matrix.questions.length })}
             </p>
 
             {matrix.participants.length === 0 ? (
-              <p className="rounded-md border border-dashed p-4 text-slate-600">
+              <p className="empty-state text-muted-foreground">
                 {t("noResponses")}
               </p>
             ) : (
@@ -66,8 +66,8 @@ export default async function SurveyResultPage({
                 answers={matrix.answers}
               />
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </main>
   );
