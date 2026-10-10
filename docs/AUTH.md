@@ -153,7 +153,10 @@ LINE 使用 `custom:line`，與 Google 共用 callback 與帳號紀錄。
 4. 在 Supabase Authentication 設定 [Custom OAuth Provider](https://supabase.com/docs/guides/auth/custom-oauth-providers)。
    使用手動 OAuth2，identifier `custom:line`。設定參考
    `frontend/supabase/line-provider.example.json`，以 Channel ID／Secret 取代占位值。
-   啟用 PKCE，scope `openid profile`，`email_optional=true`。
+   Issuer URL 填 `https://access.line.me`，JWKS URI 填 `https://api.line.me/oauth2/v2.1/certs`。
+   Dashboard 的 scopes 欄位使用逗號分隔：`openid, profile`；程式的 scopes 仍使用空白分隔。
+   保留 PKCE，啟用 Allow users without email（`email_optional=true`）。
+   Dashboard identifier 欄位已附 `custom:`，只輸入 `line`；SDK 使用 `custom:line`。
    LINE userinfo 的 `sub` 提供身分，不要求 email 權限，也不能將 LINE token 當成 Supabase session。
 5. 開發 channel 維持 Developing，加入測試者；正式開放時再檢查 Published 設定。
    Published 不能退回 Developing。
@@ -206,3 +209,19 @@ Supabase session pooler 使用 Supabase CA。若收到 SELF_SIGNED_CERT_IN_CHAIN
 此檔案不會套用到 production build。Prisma CLI 或獨立 Node 指令必須明確載入隔離開發環境，
 例如 Node 的 `--env-file=.env.development.local`，不要假設它們會讀取 Next.js 的環境檔優先順序。
 更新密碼後需重新驗證連線；若執行中的程序保留舊連線，重新啟動開發伺服器。
+
+
+## LINE provider 設定驗證（2026-10-10）
+
+- Boundaries Provider 內已建立 LINE Login channel；開發 callback 指向 Boundaries Dev 的 Auth callback。
+- Channel Secret 已由管理者重新產生，僅貼入隔離 Supabase 開發專案並由管理者提交。
+- Supabase `custom:line` 使用手動 OAuth2，openid／profile scopes、email optional 及 PKCE。
+- 本機開發登入入口 307 至隔離 Supabase，Supabase 302 至 access.line.me，範圍為 openid profile，PKCE 為 S256。
+  這是導向驗證，尚不代表 LINE 真實授權、session 或個人紀錄驗證通過。
+- Boundaries 台灣官方帳號已建立；Manager 資料使用同意、Messaging API Provider 綁定及 LINE Login 連結尚待完成。
+- LINE channel 維持 Developing；正式登入開關與正式資料庫未變更。
+
+LINE Web Login 的 ID token 使用 HS256，這裡使用 OAuth2 provider 的 userinfo 流程辨識使用者，
+而非切換為 OIDC discovery。issuer／JWKS 欄位依官方端點設定，不能以略過 token 驗證處理差異。
+參考 [LINE ID token 文件](https://developers.line.biz/en/docs/line-login/verify-id-token/) 及
+[Supabase OAuth2 provider 實作](https://github.com/supabase/auth/blob/master/internal/api/provider/custom_oauth.go)。
