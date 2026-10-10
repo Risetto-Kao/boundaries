@@ -20,15 +20,14 @@ export function FormPortal({ surveys, unavailable, listOnly = false }: { surveys
         <h1 className="page-heading">{t("existingForms")}</h1>
         <Link href="/create" className={buttonVariants()}><Plus size={20} aria-hidden="true" />{t("newForm")}</Link>
       </div> : <section className="pb-8 sm:pb-10" aria-labelledby="home-heading">
-        <h1 id="home-heading" className="max-w-2xl text-4xl leading-[1.2] font-extrabold tracking-tight sm:text-[44px]">
-          {t("homeTitleLead")}<br /><span className="text-brand">{t("homeTitleAccent")}</span>
+        <h1 id="home-heading" className={`max-w-2xl text-[clamp(24px,6vw,44px)] leading-[1.2] font-extrabold tracking-tight ${locale === "zh-Hant" ? "whitespace-nowrap" : ""}`}>
+          {t("homeTitleLead")}<span className="whitespace-nowrap text-brand">{t("homeTitleAccent")}</span>
         </h1>
         <p className="page-description">{t("homeDescription")}</p>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link href="/create" className={buttonVariants({ size: "lg" })}>{t("newForm")}<ArrowRight size={20} aria-hidden="true" /></Link>
-          <a href="#existing-forms" className="text-action">{t("openExisting")}</a>
+          <Link href="/surveys" className="text-action">{t("openExisting")}<ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">{t("guestStart")}</p>
       </section>}
       <section id="existing-forms" className="page-section scroll-mt-6" aria-labelledby="forms-heading">
         <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
