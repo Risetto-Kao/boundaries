@@ -1,3 +1,4 @@
+import { resolveResponseNickname } from "@/lib/auth/display-name";
 import { getRequestI18n } from "@/lib/i18n/server";
 import { AuthUnavailableError, getCurrentUser } from "@/lib/auth/user";
 import { isAccountHistoryEnabled, isSameOrigin } from "@/lib/auth/config";
@@ -29,7 +30,7 @@ export async function POST(
     const body = await request.json();
     const parsedInput = submitResponseSchema.safeParse({
       surveyId: parsedSurveyId.data,
-      nickname: body?.nickname,
+      nickname: resolveResponseNickname(body?.nickname, user?.user_metadata),
       answers: body?.answers,
     });
 

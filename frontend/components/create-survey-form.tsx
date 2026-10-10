@@ -163,8 +163,7 @@ export function CreateSurveyForm() {
       {createResult && <section role="status" className="feedback feedback-success space-y-4">
         <h2 ref={successHeadingRef} tabIndex={-1} className="flex items-center gap-2 text-xl font-bold focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring"><Check size={24} aria-hidden="true" />{t("created")}</h2>
         <div className="flex flex-wrap gap-3">
-          <CopyLinkButton label={t("copySurvey")} path={createResult.fillUrl} />
-          <CopyLinkButton label={t("copyResults")} path={createResult.resultUrl} />
+          <CopyLinkButton label={t("inviteFriends")} path={createResult.fillUrl} />
         </div>
         <div className="flex flex-wrap gap-5"><Link href={createResult.fillUrl} className="text-action">{t("openForm")}</Link><Link href={createResult.resultUrl} className="text-action">{t("viewResults")}</Link></div>
       </section>}

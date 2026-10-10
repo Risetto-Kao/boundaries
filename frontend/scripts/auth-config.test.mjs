@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { authProviders, safeReturnTo, isSameOrigin, isAuthConfigured, isAccountHistoryEnabled, getEnabledAuthProviders } from '../lib/auth/config.ts';
+import { getAccountDisplayName, resolveResponseNickname } from '../lib/auth/display-name.ts';
+
+test('uses only valid display names, without exposing email or account identifiers', () => {
+  assert.equal(getAccountDisplayName({ full_name: '  小明  ', name: 'Other name' }), '小明');
+  assert.equal(getAccountDisplayName({ full_name: ' ', name: 42, display_name: '旅行夥伴' }), '旅行夥伴');
+  assert.equal(getAccountDisplayName({ full_name: {}, name: ['private'], email: 'private@example.invalid', id: 'private-id' }), null);
+  assert.equal(getAccountDisplayName(undefined), null);
+  assert.equal(getAccountDisplayName({ name: '名'.repeat(51) }), '名'.repeat(50));
+});
+
+test('blank authenticated nicknames use account names while custom names and invalid input stay intact', () => {
+  const metadata = { full_name: '  帳號名稱  ' };
+  for (const input of [undefined, '', ' ', '\u3000']) assert.equal(resolveResponseNickname(input, metadata), '帳號名稱');
+  assert.equal(resolveResponseNickname('  自訂暱稱  ', metadata), '  自訂暱稱  ');
+  for (const input of [null, 42, {}, []]) assert.equal(resolveResponseNickname(input, metadata), input);
+  assert.equal(resolveResponseNickname(undefined, null), '');
+  assert.equal(resolveResponseNickname(' ', { email: 'private@example.invalid' }), '');
+});
 
 test('keeps internal form destinations and normalizes paths', () => {
   assert.equal(safeReturnTo('/surveys/abc?tab=answers#question'), '/surveys/abc?tab=answers#question');

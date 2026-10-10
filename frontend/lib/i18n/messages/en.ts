@@ -1,6 +1,12 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "settings": "Settings",
+  "createdBy": "Created by {name}",
+  "creatorUnknown": "Not recorded",
+  "creatorMember": "Registered user",
+  "creatorUnavailable": "Temporarily unavailable",
+
   "homeTitleLead": "Create ",
   "homeTitleAccent": "your boundaries",
   "homeDescription": "Let each other know what works for you and what doesn’t.",
@@ -77,11 +83,8 @@ const messages = {
   "questionView": "By question",
   "matrixView": "Matrix",
   "peopleCount": "{count} people",
-  "noSelections": "No responses",
   "unanswered": "Unanswered",
   "questionPeople": "Question / Person",
-  "copySurvey": "Copy boundary link",
-  "copyResults": "Copy results link",
   "copied": "Copied",
   "currentResults": "View current results",
   "answerHonestly": "Answer honestly based on your preferences.",
@@ -96,7 +99,7 @@ const messages = {
   "install": "Add to home screen",
   "myForms": "My boundaries and responses",
   "signedIn": "Signed in",
-  "signOut": "Sign out / Use as guest",
+  "signOut": "Sign out",
   "guest": "Guest mode",
   "loginSave": "Sign in to save history",
   "sessionRetry": "Unable to check your session. Sign in again before submitting.",

@@ -12,8 +12,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#FCFCFF",
-    theme_color: "#FCFCFF",
+    background_color: "#F1EEF8",
+    theme_color: "#F1EEF8",
     icons: [
       { src: "/assets/brand/boundaries-app-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/assets/brand/boundaries-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

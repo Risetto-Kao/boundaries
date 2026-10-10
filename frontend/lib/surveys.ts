@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import type { Answer } from "@/types/survey";
+import { getSurveyCreators } from "@/lib/survey-creators";
 
-// Public form queries deliberately exclude account attribution columns so the
-// existing service works before the additive Auth schema rollout.
+// Base queries work before the Auth schema rollout; the optional server-only
+// creator lookup is gated by ACCOUNT_HISTORY_ENABLED.
 const surveyFields = { id: true, title: true, description: true, createdAt: true, updatedAt: true } as const;
 
 export async function getRecentSurveys(limit = 10) {
   try {
-    return await prisma.survey.findMany({
+    const surveys = await prisma.survey.findMany({
       orderBy: {
         createdAt: "desc",
       },
@@ -21,6 +22,8 @@ export async function getRecentSurveys(limit = 10) {
         },
       },
     });
+    const creators = await getSurveyCreators(surveys.map(({ id }) => id));
+    return surveys.map((survey) => ({ ...survey, creator: creators.get(survey.id)! }));
   } catch {
     return [];
   }
@@ -28,7 +31,7 @@ export async function getRecentSurveys(limit = 10) {
 
 export async function getAllSurveys({ throwOnError = false } = {}) {
   try {
-    return await prisma.survey.findMany({
+    const surveys = await prisma.survey.findMany({
       orderBy: {
         createdAt: "desc",
       },
@@ -41,6 +44,8 @@ export async function getAllSurveys({ throwOnError = false } = {}) {
         },
       },
     });
+    const creators = await getSurveyCreators(surveys.map(({ id }) => id));
+    return surveys.map((survey) => ({ ...survey, creator: creators.get(survey.id)! }));
   } catch (error) {
     if (throwOnError) throw error;
     return [];
@@ -48,7 +53,7 @@ export async function getAllSurveys({ throwOnError = false } = {}) {
 }
 
 export async function getSurveyById(surveyId: string) {
-  return prisma.survey.findUnique({
+  const survey = await prisma.survey.findUnique({
     where: {
       id: surveyId,
     },
@@ -61,6 +66,9 @@ export async function getSurveyById(surveyId: string) {
       },
     },
   });
+  if (!survey) return null;
+  const creators = await getSurveyCreators([survey.id]);
+  return { ...survey, creator: creators.get(survey.id)! };
 }
 
 export async function getSurveyMatrixData(surveyId: string) {
@@ -91,6 +99,7 @@ export async function getSurveyMatrixData(surveyId: string) {
   if (!survey) {
     return null;
   }
+  const creators = await getSurveyCreators([survey.id]);
 
   const participants = survey.responses.map((response) => ({
     id: response.id,
@@ -112,6 +121,7 @@ export async function getSurveyMatrixData(surveyId: string) {
       description: survey.description,
       createdAt: survey.createdAt,
       updatedAt: survey.updatedAt,
+      creator: creators.get(survey.id)!,
     },
     questions: survey.questions,
     participants,
