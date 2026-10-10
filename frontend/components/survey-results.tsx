@@ -51,10 +51,11 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
           className={cn("h-11 px-3", view === null ? "bg-card text-brand md:bg-transparent md:text-foreground" : view === "question" && "bg-card text-brand")}
           aria-pressed={activeView === "question"}
           aria-controls="question-results"
+          aria-label={t("questionView")}
+          title={t("questionView")}
           onClick={() => setView("question")}
         >
           <List aria-hidden="true" />
-          {t("questionView")}
         </Button>
         <Button
           type="button"
@@ -62,10 +63,11 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
           className={cn("h-11 px-3", view === null ? "md:bg-card md:text-brand" : view === "matrix" && "bg-card text-brand")}
           aria-pressed={activeView === "matrix"}
           aria-controls="matrix-results"
+          aria-label={t("matrixView")}
+          title={t("matrixView")}
           onClick={() => setView("matrix")}
         >
           <LayoutGrid aria-hidden="true" />
-          {t("matrixView")}
         </Button>
       </div>
 
@@ -89,7 +91,7 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
                   return (
                     <div key={value} className={cn("min-w-0 rounded-lg p-4", ANSWER_STYLE[value])}>
                       <h3 className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 font-semibold">
-                        <span className="inline-flex items-center gap-2"><Icon size={20} className="shrink-0" aria-hidden="true" />{label}</span><span className="text-xs font-normal">{t("peopleCount", { count: respondents.length })}</span>
+                        <span className="inline-flex items-center gap-2" title={label}><Icon size={24} className="shrink-0" aria-hidden="true" /><span className="sr-only">{label}</span></span><span className="text-3xl font-extrabold tabular-nums leading-none" aria-label={t("peopleCount", { count: respondents.length })}>{respondents.length}</span>
                       </h3>
                       {respondents.length > 0 ? (
                         <ul className="flex flex-wrap gap-2">
@@ -99,9 +101,7 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
                             </li>
                           ))}
                         </ul>
-                      ) : (
-                        <p className="text-sm">{t("noSelections")}</p>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}

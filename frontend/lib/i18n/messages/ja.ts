@@ -1,6 +1,12 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "settings": "設定",
+  "createdBy": "作成者：{name}",
+  "creatorUnknown": "未記録",
+  "creatorMember": "登録ユーザー",
+  "creatorUnavailable": "一時的に読み込めません",
+
   "homeTitleLead": "あなたの",
   "homeTitleAccent": "境界線をつくる",
   "homeDescription": "何が大丈夫で、何が難しいか。お互いに伝えよう。",
@@ -77,11 +83,8 @@ const messages = {
   "questionView": "質問ごと",
   "matrixView": "マトリックス",
   "peopleCount": "{count} 人",
-  "noSelections": "回答なし",
   "unanswered": "未回答",
   "questionPeople": "質問 / 回答者",
-  "copySurvey": "回答リンクをコピー",
-  "copyResults": "結果リンクをコピー",
   "copied": "コピーしました",
   "currentResults": "現在の結果を見る",
   "answerHonestly": "自分の習慣や好みに合わせて正直に回答してください。",
@@ -96,7 +99,7 @@ const messages = {
   "install": "ホーム画面に追加",
   "myForms": "自分の境界線と回答",
   "signedIn": "ログイン中",
-  "signOut": "ログアウト / ゲストに切替",
+  "signOut": "ログアウト",
   "guest": "ゲストモード",
   "loginSave": "ログインして履歴を保存",
   "sessionRetry": "ログイン状態を確認できません。再ログインしてから送信してください。",

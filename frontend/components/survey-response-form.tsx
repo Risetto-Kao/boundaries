@@ -3,7 +3,7 @@
 import { useI18n } from "@/components/i18n-provider";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Check, RotateCcw, Triangle, X } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import type { Answer } from "@/types/survey";
 
 interface SurveyResponseFormProps {
   surveyId: string;
+  defaultNickname?: string;
   questions: {
     id: string;
     text: string;
@@ -27,10 +28,10 @@ interface SubmitResponseError {
   error: string;
 }
 
-export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormProps) {
+export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }: SurveyResponseFormProps) {
   const { t, locale } = useI18n();
   const router = useRouter();
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState(defaultNickname);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [errorTarget, setErrorTarget] = useState<"nickname" | "question" | null>(null);
@@ -57,7 +58,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
-  const canSubmit = nickname.trim().length > 0 && allAnswered && !isSubmitting && !isNavigating && !isAnimating;
+  const canSubmit = (nickname.trim() || defaultNickname).length > 0 && allAnswered && !isSubmitting && !isNavigating && !isAnimating;
 
   useEffect(() => {
     return () => {
@@ -180,7 +181,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
     setErrorMessage("");
     setErrorTarget(null);
 
-    const trimmedNickname = nickname.trim();
+    const trimmedNickname = nickname.trim() || defaultNickname;
     if (!trimmedNickname) {
       setErrorMessage(t("nicknameRequired"));
       setErrorTarget("nickname");
@@ -238,7 +239,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const currentQuestion = questions[currentIndex];
   const dragStrength = Math.min(Math.abs(dragX) / 96, 1);
   const interactionDisabled = isAnimating || isSubmitting || isNavigating;
-  const answerLabel = exitAnswer === "depends" ? t("depends") : dragX > 0 ? t("yes") : t("no");
+  const FeedbackIcon = exitAnswer === "depends" ? Triangle : dragX > 0 ? Check : X;
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit} aria-busy={isSubmitting || isNavigating}>
@@ -250,9 +251,9 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
           id="nickname"
           value={nickname}
           onChange={(event) => setNickname(event.target.value)}
-          placeholder={t("nicknamePlaceholder")}
+          placeholder={defaultNickname || t("nicknamePlaceholder")}
           maxLength={50}
-          required
+          required={!defaultNickname}
           disabled={isSubmitting || isNavigating}
           aria-invalid={!!errorMessage && errorTarget === "nickname"}
           aria-describedby={errorMessage && errorTarget === "nickname" ? "response-error" : undefined}
@@ -264,8 +265,8 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
           <span id="response-progress" className="font-medium text-foreground" aria-live="polite">
             {allAnswered ? t("allDone") : t("questionProgress", { count: currentIndex + 1, total: questions.length })}
           </span>
-          <Button type="button" variant="ghost" size="sm" onClick={undoAnswer} disabled={currentIndex === 0 || interactionDisabled}>
-            <RotateCcw /> {t("previousQuestion")}
+          <Button type="button" variant="ghost" size="sm" onClick={undoAnswer} disabled={currentIndex === 0 || interactionDisabled} aria-label={t("previousQuestion")} title={t("previousQuestion")}>
+            <RotateCcw aria-hidden="true" />
           </Button>
         </div>
         <div role="progressbar" aria-label={t("answerProgress")} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answeredCount} className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -311,7 +312,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
                     <h3 id={`question-heading-${question.id}`} className="my-auto py-8 text-left text-[26px] font-extrabold leading-[1.45] tracking-tight text-brand-foreground [overflow-wrap:anywhere] sm:text-[28px]">{question.text}</h3>
                     {active && (Math.abs(dragX) > 8 || exitAnswer) ? (
                       <div aria-hidden="true" className={`pointer-events-none absolute top-14 rounded-lg px-4 py-2 text-2xl font-black tracking-widest ${exitAnswer === "depends" ? "left-6 -rotate-6 answer-depends" : dragX > 0 ? "left-6 -rotate-12 answer-yes" : "right-6 rotate-12 answer-no"}`} style={{ opacity: exitAnswer ? 1 : dragStrength }}>
-                        {answerLabel}
+                        <FeedbackIcon className="size-9" />
                       </div>
                     ) : null}
                   </div>
@@ -331,13 +332,14 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {([
               { value: "no", label: t("no"), Icon: X },
-              { value: "depends", label: t("depends"), Icon: SlidersHorizontal },
+              { value: "depends", label: t("depends"), Icon: Triangle },
               { value: "yes", label: t("yes"), Icon: Check },
             ] as const).map(({ value, label, Icon }) => (
               <Button key={value} type="button" variant="answer" onClick={() => animateAnswer(value)} disabled={interactionDisabled}
                 aria-label={t("answerAction", { answer: label })}
-                className={`min-h-14 flex-col gap-1 px-1 text-sm font-bold min-[390px]:flex-row min-[390px]:gap-2 [&_svg]:size-5 ${ANSWER_STYLE[value]}`}>
-                <Icon aria-hidden="true" />{label}
+                title={label}
+                className={`min-h-16 [&_svg]:size-8 ${ANSWER_STYLE[value]}`}>
+                <Icon aria-hidden="true" />
               </Button>
             ))}
           </div>

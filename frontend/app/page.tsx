@@ -22,6 +22,6 @@ export default async function HomePage() {
     title: survey.title,
     description: survey.description,
     responses: survey._count.responses,
-    createdAt: survey.createdAt.toISOString(),
+    createdAt: survey.createdAt.toISOString(), creator: survey.creator,
   }))} />;
 }

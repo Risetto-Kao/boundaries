@@ -6,9 +6,11 @@ import { ArrowRight, FileText, Plus, Search, Users } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CreatorAttribution } from "@/components/creator-attribution";
+import type { SurveyCreator } from "@/lib/survey-creators";
 import { formatDate } from "@/lib/i18n/config";
 
-type PortalSurvey = { id: string; title: string; description: string | null; responses: number; createdAt: string };
+type PortalSurvey = { id: string; title: string; description: string | null; responses: number; createdAt: string; creator: SurveyCreator };
 
 export function FormPortal({ surveys, unavailable, listOnly = false }: { surveys: PortalSurvey[]; unavailable: boolean; listOnly?: boolean }) {
   const { t, locale } = useI18n();
@@ -48,6 +50,7 @@ export function FormPortal({ surveys, unavailable, listOnly = false }: { surveys
               <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-bold [overflow-wrap:anywhere]">{survey.title}</h3>
                 <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-2"><Users size={16} aria-hidden="true" />{t("responseCount", { count: survey.responses })}</span><span>{t("createdOn", { date: formatDate(locale, survey.createdAt) })}</span></p>
+                <CreatorAttribution creator={survey.creator} />
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <Link aria-label={t("fillFormLabel", { title: survey.title })} href={`/surveys/${survey.id}`} className={buttonVariants({ variant: "outline" })}>{t("openForm")}</Link>

@@ -1,6 +1,12 @@
 import type { Messages } from "../config";
 
 const messages = {
+  "settings": "설정",
+  "createdBy": "만든 사람: {name}",
+  "creatorUnknown": "기록되지 않음",
+  "creatorMember": "등록 사용자",
+  "creatorUnavailable": "일시적으로 불러올 수 없음",
+
   "homeTitleLead": "나의 경계를 ",
   "homeTitleAccent": "만들어 보세요",
   "homeDescription": "괜찮은 것과 어려운 것, 서로에게 알려 주세요.",
@@ -77,11 +83,8 @@ const messages = {
   "questionView": "질문별 보기",
   "matrixView": "표로 보기",
   "peopleCount": "{count}명",
-  "noSelections": "응답 없음",
   "unanswered": "미응답",
   "questionPeople": "질문 / 응답자",
-  "copySurvey": "경계 링크 복사",
-  "copyResults": "결과 링크 복사",
   "copied": "복사 완료",
   "currentResults": "현재 결과 보기",
   "answerHonestly": "평소 성향에 따라 솔직하게 답해 주세요.",
@@ -96,7 +99,7 @@ const messages = {
   "install": "홈 화면에 추가",
   "myForms": "내 경계와 응답",
   "signedIn": "로그인됨",
-  "signOut": "로그아웃 / 게스트로 전환",
+  "signOut": "로그아웃",
   "guest": "게스트 모드",
   "loginSave": "로그인하고 기록 저장",
   "sessionRetry": "로그인 상태를 확인할 수 없습니다. 다시 로그인한 후 제출하세요.",

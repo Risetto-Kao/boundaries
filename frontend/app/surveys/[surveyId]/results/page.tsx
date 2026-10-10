@@ -1,10 +1,9 @@
 import { getI18n } from "@/lib/i18n/server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { SurveyResults } from "@/components/survey-results";
-import { buttonVariants } from "@/components/ui/button";
+import { CreatorAttribution } from "@/components/creator-attribution";
 import { getSurveyMatrixData } from "@/lib/surveys";
 import { surveyIdSchema } from "@/lib/validations";
 
@@ -40,13 +39,10 @@ export default async function SurveyResultPage({
           <p className="page-description">
             {matrix.survey.description ?? t("resultsDescription")}
           </p>
+          <CreatorAttribution creator={matrix.survey.creator} />
         </header>
         <div className="flex flex-wrap gap-2">
-          <CopyLinkButton label={t("copyResults")} />
-          <CopyLinkButton label={t("copySurvey")} path={fillPath} />
-          <Link className={buttonVariants()} href={fillPath}>
-            {t("inviteFriends")}
-          </Link>
+          <CopyLinkButton label={t("inviteFriends")} path={fillPath} />
         </div>
 
         <p className="text-muted-foreground">

@@ -8,6 +8,9 @@
 - 登入後送出填答，`responses.user_id` 儲存同一帳號 ID；答案與帳號歸屬在同一次 Prisma nested create 寫入。
 - `/account` 僅查詢目前帳號建立的表單及提交的填答，可展開自己的答案，各列表每頁 20 筆。
 - 訪客可以建立、填答、分享與查看群體結果；歸屬欄位是 null，不建立 Supabase 匿名帳號，不使用 localStorage 儲存訪客歷史。
+- 頁首設定選單集中帳號紀錄、加入主畫面與登出；登入入口保留目前頁面（含 query／hash），OAuth 後返回分享的填答或結果頁。
+- 登入填答預填帳號顯示名稱；留白時伺服器同樣補入名稱，明確填寫的暱稱優先，沒有名稱的帳號仍需輸入。
+- 公共列表、填答頁與結果頁標示建立者，只讀取帳號顯示名稱，不公開 email／user ID；舊訪客或已刪帳號歸屬標示未記錄。讀取名稱失敗時顯示暫時無法載入。
 - 登出目前裝置後回到訪客模式。未送出的表單輸入不會跨登入導向保留，請先登入再填寫。
 - 登入不會認領之前的訪客資料。舊資料仍保持沒有帳號歸屬。
 - 共用問卷與群體結果仍採連結分享及公開列表，並非私人表單。帳號的建立／填答清單只顯示給本人。
@@ -96,7 +99,7 @@ pnpm --dir frontend typecheck
 pnpm --dir frontend build
 ```
 
-`test:auth` 是導向、來源與供應商開關的 7 個單元測試；lint/typecheck/build 不是功能測試。
+`test:auth` 是導向、來源、供應商開關及顯示名稱／暱稱預設的 9 個單元測試；lint/typecheck/build 不是功能測試。
 以下流程必須在確定隔離資料庫及 Google provider 設定完成後驗證：
 
 1. Arc 開啟 `/login`，Google 登入後確認出現帳號導覽。
@@ -249,3 +252,5 @@ LINE Web Login 的 ID token 使用 HS256，這裡使用 OAuth2 provider 的 user
 - LINE Login channel 維持 Developing，尚未發布。跨裝置與手機 Safari 尚未驗證。
 - 正式資料庫仍未執行 account-history.sql；正式 Supabase provider、redirect 與 Vercel 登入環境設定仍待 rollout。
   正式開關須在管理者完成正式資料庫 SQL 後才啟用，不可把開發連線部署到正式網站。
+
+`codex/refine-boundary-experience` 同樣停用 Git Preview 部署；本機介面驗證使用離線資料與暫時範例，不向未確認隔離的資料庫寫入。基底／範本功能尚未實作，其作者與來源標示待該功能一起加入。

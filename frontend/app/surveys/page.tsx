@@ -9,6 +9,6 @@ export default async function SurveyListPage() {
   try { surveys = await getAllSurveys({ throwOnError: true }); } catch { unavailable = true; }
   return <FormPortal listOnly unavailable={unavailable} surveys={surveys.map((survey) => ({
     id: survey.id, title: survey.title, description: survey.description,
-    responses: survey._count.responses, createdAt: survey.createdAt.toISOString(),
+    responses: survey._count.responses, createdAt: survey.createdAt.toISOString(), creator: survey.creator,
   }))} />;
 }
