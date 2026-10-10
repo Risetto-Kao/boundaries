@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
+      "codex/b3-design-verification": false,
       "codex/swipe-card-deck": false,
       "codex/google-login-history": false,
       "codex/iphone-home-screen": false,

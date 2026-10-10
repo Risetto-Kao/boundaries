@@ -35,3 +35,34 @@ lint、typecheck、production build 全數通過；既有 test:auth 6/6、test:i
 PR merge 前確認 CI、review、合併狀態及可取得的 Preview。merge 後核對 Vercel Production 的 merge commit 並在瀏覽器確認實際頁面；部署 URL 與畫面記錄由 PR／本次交付提供。
 
 未實測：隔離資料庫的建立、提交與儲存流程、Google OAuth、登入後帳號歷史／分頁、iPhone Safari／加入主畫面、非 Mac 字型 fallback。正式站只進行安全閱讀和視覺確認，不建立或提交測試資料。
+
+## 2026-10-10 補齊與 Chrome 驗證
+
+本輪基底為 production master `57939a5`；原設計已於 PR #9、merge commit `5a1db15b8b58083e56a0d9f4acde01ac1c8b4890` 完成導入。原部署紀錄：https://vercel.com/risettokaos-projects/boundaries/7842P67tqsaodhXNTFuEHWbbGrkk 。本輪保留後續 Google／LINE 登入，主要補齊錯誤頁、鍵盤焦點、長文字和帳號連結標籤。
+
+依本次使用者要求，全程使用 Chrome。另開 127.0.0.1:3001，DATABASE_URL／DIRECT_URL 都使用 loopback 離線占位值，ACCOUNT_HISTORY_ENABLED=false。原本 3000 開發服務不停止；臨時使用獨立建置目錄，結束後移除並還原自動修改的 Next／TypeScript 設定。
+
+| 實際檢查 | 結果 |
+| --- | --- |
+| B3 原型首頁及 computed styles | 44px、800 字重、Avenir Next／PingFang，背景 #FCFCFF；正式元件沿用相同方向 |
+| Chrome 正式首頁／建立 | 桌面 1280px 與 320px，品牌、主操作和輸入可讀，無整頁水平溢出 |
+| 建立頁新增問題 | 新欄位取得焦點；20 題時新增 disabled，空題仍限制建立；未提交 |
+| 正式表單元件的可移除展示 | 320／390px 長中文及無空格英文不裁切；Enter 作答後聚焦下一題；上一題回到該題；完成提示取得焦點，空暱稱限制提交 |
+| 手勢展示 | Chrome 390px 右滑→第 2 題、左滑→第 3 題、雙擊→完成；答案沒有提交 |
+| 結果展示 20 人／3 題 | 320／390px 單題／矩陣切換；320px 表格容器 265px、內部 3780px，整頁不溢出；768px 英文 Yes／No／Depends 和人數無碰撞 |
+| 分享按鈕 | 320px 英文連結標籤各 222／175px，未溢出容器 |
+| 填答／結果資料不可用 | 正式 routes 對離線 DB 顯示 B3 錯誤頁；四語 320px 正常，無原始例外文字 |
+| 錯誤重試 | 點擊後 server 再執行資料查詢；離線狀態持續時保留重試入口 |
+| 其他靜態頁 320px | /surveys、/login、/install 正常；/account 訪客導向 /login?next=/account，無整頁溢出 |
+
+展示只組合正式 SurveyResponseForm／SurveyResults 與明確標示的假資料，不連 DB、不提交；route 和獨立 build 目錄均已移除。這不代表建立、答案儲存或帳號資料庫流程已驗證。建立成功聚焦與重複暱稱提示經程式 review，未以真實寫入驗證。
+
+Node 24.21.0、pnpm 10.13.1：lint、typecheck、production build 通過；既有 test:auth 7/7、test:i18n 5/5 通過。程式檢查與既有測試均不涵蓋完整 DB 流程。
+
+### Preview 與合併後紀錄
+
+Chrome 的 Vercel dashboard 目前要求登入，本機沒有 Vercel CLI。無法替新分支配置離線 Preview 環境，因此在 vercel.json 僅停用 `codex/b3-design-verification` 的 Preview；production 與其他分支設定保持原狀。不能將繼承 production DB 的 Preview 用來試填。若後續需要該分支 Preview，須在 Chrome 登入 Vercel、為該分支設定隔離 DB 或離線占位值，再移除此分支的 deploymentEnabled=false。
+
+GitHub connector 可核對 commit 對應的 Vercel success 與 deployment URL，因此 production 部署確認可繼續。此輪 PR 的最終描述與交付將記錄 merge commit、對應部署和 Chrome 正式畫面結果；不以舊 PR 的部署當成本次驗證。
+
+未驗證：本輪實際 DB 建立／提交／儲存、登入後帳號歷史／分頁、OAuth 新流程、Phone Safari／主畫面、非 Mac 字型 fallback。正式站只安全閱讀，不建立或提交測試資料。

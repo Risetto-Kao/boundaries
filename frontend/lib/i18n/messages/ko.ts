@@ -162,6 +162,8 @@ const messages = {
   "surveyMissing": "설문이 없거나 질문이 설정되지 않았습니다",
   "answersMismatch": "응답이 설문 질문과 일치하지 않습니다",
   "duplicateNickname": "이 닉네임으로 이미 응답을 제출했습니다",
+  "pageUnavailable": "페이지를 일시적으로 불러올 수 없습니다",
+  "pageRetry": "잠시 후 다시 불러오거나 설문 목록으로 돌아가세요.",
   "notFound": "페이지를 찾을 수 없습니다",
   "notFoundDescription": "링크가 유효하지 않거나 설문이 삭제되었을 수 있습니다"
 } satisfies Messages;

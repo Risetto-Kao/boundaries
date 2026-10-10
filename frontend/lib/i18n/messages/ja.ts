@@ -162,6 +162,8 @@ const messages = {
   "surveyMissing": "アンケートが見つからないか、質問がありません",
   "answersMismatch": "回答がアンケートの質問と一致しません",
   "duplicateNickname": "このニックネームではすでに回答済みです",
+  "pageUnavailable": "ページを読み込めません",
+  "pageRetry": "後でもう一度読み込むか、フォーム一覧に戻ってください。",
   "notFound": "ページが見つかりません",
   "notFoundDescription": "リンクが無効か、アンケートが削除された可能性があります。"
 } satisfies Messages;

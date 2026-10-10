@@ -160,6 +160,8 @@ const messages = {
   "surveyMissing": "問卷不存在或尚未設定題目",
   "answersMismatch": "答案與問卷題目不一致",
   "duplicateNickname": "同一暱稱已經提交過這份問卷",
+  "pageUnavailable": "暫時無法載入頁面",
+  "pageRetry": "請稍後重新載入，或回到表單入口。",
   "notFound": "找不到這個頁面",
   "notFoundDescription": "連結可能無效，或這份問卷已不存在。"
 } as const;

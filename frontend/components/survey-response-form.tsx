@@ -33,6 +33,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const [nickname, setNickname] = useState("");
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [errorTarget, setErrorTarget] = useState<"nickname" | "question" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNavigating, startNavigation] = useTransition();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -52,11 +53,11 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   const animationLockRef = useRef(false);
   const lastTapRef = useRef(0);
   const swipeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusNextCardRef = useRef(false);
 
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
   const canSubmit = nickname.trim().length > 0 && allAnswered && !isSubmitting && !isNavigating && !isAnimating;
-
 
   useEffect(() => {
     return () => {
@@ -65,7 +66,9 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
   }, []);
 
   useEffect(() => {
-    if (allAnswered && currentIndex > 0) completionRef.current?.focus();
+    if (!focusNextCardRef.current) return;
+    (allAnswered ? completionRef.current : cardRef.current)?.focus();
+    focusNextCardRef.current = false;
   }, [allAnswered, currentIndex]);
 
   const animateAnswer = (value: Answer) => {
@@ -83,6 +86,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
     const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180;
     swipeTimerRef.current = setTimeout(() => {
+      focusNextCardRef.current = true;
       setAnswers((previous) => ({ ...previous, [question.id]: value }));
       setCurrentIndex(currentIndex + 1);
       setDragX(0);
@@ -105,6 +109,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
     lastTapRef.current = 0;
     setDragX(0);
     setIsDragging(false);
+    focusNextCardRef.current = true;
     setCurrentIndex(currentIndex - 1);
   };
 
@@ -171,17 +176,20 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmitting || isNavigating) return;
+    if (animationLockRef.current || isSubmitting || isNavigating) return;
     setErrorMessage("");
+    setErrorTarget(null);
 
     const trimmedNickname = nickname.trim();
     if (!trimmedNickname) {
       setErrorMessage(t("nicknameRequired"));
+      setErrorTarget("nickname");
       return;
     }
 
     if (!allAnswered) {
       setErrorMessage(t("allRequired"));
+      setErrorTarget("question");
       return;
     }
 
@@ -207,6 +215,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
       if (!response.ok) {
         const message = "error" in payload ? payload.error : t("submitFailed");
         setErrorMessage(message);
+        if (response.status === 409) setErrorTarget("nickname");
         return;
       }
 
@@ -245,14 +254,14 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
           maxLength={50}
           required
           disabled={isSubmitting || isNavigating}
-          aria-invalid={!!errorMessage && !nickname.trim()}
-          aria-describedby={errorMessage ? "response-error" : undefined}
+          aria-invalid={!!errorMessage && errorTarget === "nickname"}
+          aria-describedby={errorMessage && errorTarget === "nickname" ? "response-error" : undefined}
         />
       </div>
 
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="font-medium text-foreground" aria-live="polite">
+          <span id="response-progress" className="font-medium text-foreground" aria-live="polite">
             {allAnswered ? t("allDone") : t("questionProgress", { count: currentIndex + 1, total: questions.length })}
           </span>
           <Button type="button" variant="ghost" size="sm" onClick={undoAnswer} disabled={currentIndex === 0 || interactionDisabled}>
@@ -273,15 +282,18 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
                   <div
                     key={question.id}
                     ref={active ? cardRef : undefined}
+                    id={active ? "current-question" : undefined}
+                    tabIndex={active ? -1 : undefined}
                     aria-hidden={!active}
                     role={active ? "group" : undefined}
-                    aria-label={active ? t("questionNumber", { count: currentIndex + 1 }) : undefined}
+                    aria-labelledby={active ? `response-progress question-heading-${question.id}` : undefined}
+                    aria-describedby={active ? errorTarget === "question" && errorMessage ? "response-error response-hint" : "response-hint" : undefined}
                     onPointerDown={active ? handlePointerDown : undefined}
                     onPointerMove={active ? handlePointerMove : undefined}
                     onPointerUp={active ? handlePointerUp : undefined}
                     onPointerCancel={active ? cancelPointer : undefined}
                     onLostPointerCapture={active ? () => { if (pointerStartRef.current) cancelPointer(); } : undefined}
-                    className={`question-card col-start-1 row-start-1 flex flex-col motion-reduce:transition-none! ${active ? "relative touch-pan-y select-none cursor-grab active:cursor-grabbing" : "absolute inset-0 pointer-events-none overflow-hidden bg-brand-soft"}`}
+                    className={`question-card col-start-1 row-start-1 flex flex-col motion-reduce:transition-none! ${active ? "relative touch-pan-y select-none cursor-grab active:cursor-grabbing focus-visible:outline-3 focus-visible:-outline-offset-4 focus-visible:outline-brand-foreground" : "absolute inset-0 pointer-events-none overflow-hidden bg-brand-soft"}`}
                     style={{
                       zIndex: 3 - depth,
                       transform: active
@@ -296,7 +308,7 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
                       <span>BOUNDARIES</span>
                       <span>{String(currentIndex + depth + 1).padStart(2, "0")} / {String(questions.length).padStart(2, "0")}</span>
                     </div>
-                    <h3 aria-live={active ? "polite" : undefined} aria-atomic="true" className="my-auto py-8 text-left text-[26px] font-extrabold leading-[1.45] tracking-tight text-brand-foreground [overflow-wrap:anywhere] sm:text-[28px]">{question.text}</h3>
+                    <h3 id={`question-heading-${question.id}`} className="my-auto py-8 text-left text-[26px] font-extrabold leading-[1.45] tracking-tight text-brand-foreground [overflow-wrap:anywhere] sm:text-[28px]">{question.text}</h3>
                     <div className="flex flex-wrap justify-between gap-2 border-t border-brand-foreground/30 pt-4 text-xs text-brand-foreground" aria-hidden="true">
                       <span className="flex items-center gap-1"><ArrowLeft className="size-3" /> {t("no")}</span>
                       <span>{t("doubleTap", { answer: t("depends") })}</span>
@@ -312,10 +324,10 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
               })}
             </div>
           ) : (
-            <div ref={completionRef} tabIndex={-1} className="question-card flex flex-col items-center justify-center text-center">
-              <div className="mb-5 rounded-full bg-answer-yes p-3 text-answer-yes-foreground"><Check className="size-8" /></div>
-              <h3 className="text-2xl font-bold text-brand-foreground">{t("answeredAll")}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-brand-foreground">{t("confirmNickname")}</p>
+            <div ref={completionRef} tabIndex={-1} aria-labelledby="completion-heading" aria-describedby="completion-description" className="question-card flex flex-col items-center justify-center text-center focus-visible:outline-3 focus-visible:-outline-offset-4 focus-visible:outline-brand-foreground">
+              <div className="mb-5 rounded-full bg-answer-yes p-3 text-answer-yes-foreground"><Check className="size-8" aria-hidden="true" /></div>
+              <h3 id="completion-heading" className="text-2xl font-bold text-brand-foreground">{t("answeredAll")}</h3>
+              <p id="completion-description" className="mt-3 text-sm leading-relaxed text-brand-foreground">{t("confirmNickname")}</p>
             </div>
           )}
         </div>
@@ -335,12 +347,12 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
             ))}
           </div>
         )}
-        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+        <p id="response-hint" className="text-center text-xs leading-relaxed text-muted-foreground">
           {allAnswered ? t("notSubmitted", { count: answeredCount, total: questions.length }) : t("swipeHint")}
         </p>
       </div>
 
-      {errorMessage && <div id="response-error" role="alert" className="feedback feedback-error"><p>{errorMessage}</p><a href="#nickname" className="text-action text-destructive">{t("nickname")}</a></div>}
+      {errorMessage && <div id="response-error" role="alert" className="feedback feedback-error"><p>{errorMessage}</p>{errorTarget === "nickname" ? <a href="#nickname" className="text-action text-destructive">{t("nickname")}</a> : errorTarget === "question" && <a href="#current-question" className="text-action text-destructive">{t("questionNumber", { count: currentIndex + 1 })}</a>}</div>}
 
       <Button type="submit" disabled={!canSubmit} size="lg" className="w-full sm:w-auto">
         {(isSubmitting || isNavigating) && <LoadingSpinner />}
