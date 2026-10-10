@@ -9,7 +9,8 @@
       "codex/line-auth-setup": false,
       "codex/google-auth-verification": false,
       "codex/line-provider-configuration": false,
-      "codex/line-auth-verification": false
+      "codex/line-auth-verification": false,
+      "codex/boundary-ui-copy": false
     }
   }
 }

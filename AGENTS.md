@@ -13,6 +13,16 @@
   this effect and grants standing authorization for task-related commits,
   pushes, PR creation, and merging after required checks pass, including
   production deployment. Do not ask for repeated confirmation.
+- Default delivery workflow for every requested code or UI/copy change: implement
+  on a `codex/<task>` branch, review the diff, run the required checks, commit,
+  push, create a PR targeting `master`, wait for applicable CI checks to pass,
+  and merge it without asking for another confirmation. Verify the merge and
+  report the PR link plus the production deployment status. A branch or PR
+  creation link alone does not complete a change request. This is the user's
+  chosen beta workflow until they explicitly change it as usage grows.
+  Follow a task-specific request to stop at a draft, review, or PR instead.
+  If required checks fail or access is blocked, resolve supported failures or
+  report the concrete blocker; never bypass checks or deployment protection.
 - The user grants standing authorization for commands, Bash scripts, dependency
   installation, builds, checks, network requests, and GitHub operations necessary
   to complete the requested task. Proceed autonomously within that task's scope.

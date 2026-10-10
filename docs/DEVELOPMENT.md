@@ -89,6 +89,12 @@ Cloud 環境準備、檢查、review 後 Save 並 Publish；看到 Environment p
 
 ## Branch workflow / Sync
 
+目前 beta 階段的預設交付：使用者提出修改後，自動完成修改、review、必要檢查、
+commit／push、建立指向 master 的 PR，等待適用 CI 通過後直接 merge，並回報 PR
+與 production 部署狀態。不需每次再確認；只提供 branch 或 PR 建立連結不算完成。
+若使用者特別要求只做草稿／review／開 PR，依該次要求停止。使用者之後調整流程時，
+同步更新根目錄 AGENTS.md 與本節。不得繞過失敗檢查、權限或既有部署保護。
+
 日常一個修改一個 branch：
 
 ```sh

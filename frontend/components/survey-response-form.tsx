@@ -3,7 +3,7 @@
 import { useI18n } from "@/components/i18n-provider";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 
 import { LoadingSpinner } from "@/components/loading-indicator";
 import { Button } from "@/components/ui/button";
@@ -309,11 +309,6 @@ export function SurveyResponseForm({ surveyId, questions }: SurveyResponseFormPr
                       <span>{String(currentIndex + depth + 1).padStart(2, "0")} / {String(questions.length).padStart(2, "0")}</span>
                     </div>
                     <h3 id={`question-heading-${question.id}`} className="my-auto py-8 text-left text-[26px] font-extrabold leading-[1.45] tracking-tight text-brand-foreground [overflow-wrap:anywhere] sm:text-[28px]">{question.text}</h3>
-                    <div className="flex flex-wrap justify-between gap-2 border-t border-brand-foreground/30 pt-4 text-xs text-brand-foreground" aria-hidden="true">
-                      <span className="flex items-center gap-1"><ArrowLeft className="size-3" /> {t("no")}</span>
-                      <span>{t("doubleTap", { answer: t("depends") })}</span>
-                      <span className="flex items-center gap-1">{t("yes")} <ArrowRight className="size-3" /></span>
-                    </div>
                     {active && (Math.abs(dragX) > 8 || exitAnswer) ? (
                       <div aria-hidden="true" className={`pointer-events-none absolute top-14 rounded-lg px-4 py-2 text-2xl font-black tracking-widest ${exitAnswer === "depends" ? "left-6 -rotate-6 answer-depends" : dragX > 0 ? "left-6 -rotate-12 answer-yes" : "right-6 rotate-12 answer-no"}`} style={{ opacity: exitAnswer ? 1 : dragStrength }}>
                         {answerLabel}
