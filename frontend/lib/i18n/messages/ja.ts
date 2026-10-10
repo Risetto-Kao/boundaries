@@ -115,6 +115,7 @@ const messages = {
   "loginFailed": "ログインできなかったか、接続が途切れました。もう一度お試しください。",
   "loginPreparing": "ログインサービスを準備中です。ゲストモードは利用できます。",
   "loginGoogle": "Google でログイン",
+  "loginLine": "LINE でログイン",
   "returnService": "アプリに戻る",
   "continueGuest": "ゲストとして続ける",
   "privacyGuest": "ゲストモードではアカウントや個人の履歴は作成されません。フォームと回答は共有アンケートに保存されます。ログイン後もゲストの履歴は自動追加されません。",

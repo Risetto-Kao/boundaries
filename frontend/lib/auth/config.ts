@@ -2,9 +2,10 @@ import type { MessageKey } from "@/lib/i18n/config";
 import type { Provider } from "@supabase/supabase-js";
 
 // Add future providers here after enabling them in Supabase Auth.
-type AuthProvider = { id: string; labelKey: MessageKey; provider: Provider; scopes: string };
+type AuthProvider = { id: string; labelKey: MessageKey; provider: Provider; scopes: string; enabledEnv: string; enabledByDefault?: boolean };
 export const authProviders = [
-  { id: "google", labelKey: "loginGoogle", provider: "google", scopes: "openid email profile" },
+  { id: "google", labelKey: "loginGoogle", provider: "google", scopes: "openid email profile", enabledEnv: "AUTH_GOOGLE_ENABLED", enabledByDefault: true },
+  { id: "line", labelKey: "loginLine", provider: "custom:line", scopes: "openid profile", enabledEnv: "AUTH_LINE_ENABLED", enabledByDefault: false },
 ] as const satisfies readonly AuthProvider[];
 
 export function isAccountHistoryEnabled() {
@@ -15,6 +16,14 @@ export function isAuthConfigured() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   return Boolean(isAccountHistoryEnabled() && url && key && !url.includes("your-project") && key !== "your-anon-key");
+}
+
+export function getEnabledAuthProviders() {
+  if (!isAuthConfigured()) return [];
+  return authProviders.filter((provider) => {
+    const configured = process.env[provider.enabledEnv];
+    return configured === undefined ? provider.enabledByDefault : configured === "true";
+  });
 }
 
 export function safeReturnTo(value: string | null | undefined) {

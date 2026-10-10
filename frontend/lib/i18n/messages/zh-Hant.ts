@@ -113,6 +113,7 @@ const messages = {
   "loginFailed": "登入未完成或連線暫時中斷，請重試。",
   "loginPreparing": "登入服務準備中，你仍可使用訪客模式。",
   "loginGoogle": "使用 Google 登入",
+  "loginLine": "使用 LINE 登入",
   "returnService": "返回服務",
   "continueGuest": "以訪客繼續",
   "privacyGuest": "訪客不會建立帳號或儲存個人歷史。表單與答案仍會送出並保留在共用表單中；訪客紀錄不會在登入後自動加入帳號。",

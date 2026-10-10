@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { authProviders, safeReturnTo, isSameOrigin, isAuthConfigured, isAccountHistoryEnabled } from '../lib/auth/config.ts';
+import { authProviders, safeReturnTo, isSameOrigin, isAuthConfigured, isAccountHistoryEnabled, getEnabledAuthProviders } from '../lib/auth/config.ts';
 
 test('keeps internal form destinations and normalizes paths', () => {
   assert.equal(safeReturnTo('/surveys/abc?tab=answers#question'), '/surveys/abc?tab=answers#question');
@@ -29,8 +29,36 @@ test('accepts only browser mutations from the exact same origin', () => {
   assert.equal(isSameOrigin(new Request(url)), false);
 });
 
-test('exposes only Google until additional providers are configured', () => {
-  assert.deepEqual(authProviders.map(({ id, provider }) => [id, provider]), [['google', 'google']]);
+test('registers LINE with its own verified OAuth identity and minimal scopes', () => {
+  assert.deepEqual(authProviders.map(({ id, provider }) => [id, provider]), [['google', 'google'], ['line', 'custom:line']]);
+  assert.equal(authProviders.find(({ id }) => id === 'line').scopes, 'openid profile');
+});
+
+test('hides disabled providers and prevents sign-in before schema configuration is enabled', () => {
+  const keys = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'ACCOUNT_HISTORY_ENABLED', 'AUTH_GOOGLE_ENABLED', 'AUTH_LINE_ENABLED'];
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  try {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://development.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'public-test-key';
+    process.env.ACCOUNT_HISTORY_ENABLED = 'true';
+    delete process.env.AUTH_GOOGLE_ENABLED;
+    delete process.env.AUTH_LINE_ENABLED;
+    assert.deepEqual(getEnabledAuthProviders().map(({ id }) => id), ['google']);
+    process.env.AUTH_LINE_ENABLED = 'true';
+    assert.deepEqual(getEnabledAuthProviders().map(({ id }) => id), ['google', 'line']);
+    process.env.AUTH_GOOGLE_ENABLED = 'false';
+    assert.deepEqual(getEnabledAuthProviders().map(({ id }) => id), ['line']);
+    process.env.ACCOUNT_HISTORY_ENABLED = 'false';
+    assert.deepEqual(getEnabledAuthProviders(), []);
+    process.env.ACCOUNT_HISTORY_ENABLED = 'true';
+    process.env.AUTH_LINE_ENABLED = 'TRUE';
+    assert.deepEqual(getEnabledAuthProviders(), []);
+  } finally {
+    for (const key of keys) {
+      if (previous[key] === undefined) delete process.env[key];
+      else process.env[key] = previous[key];
+    }
+  }
 });
 
 test('placeholder and missing auth configuration keep guest mode available', () => {
