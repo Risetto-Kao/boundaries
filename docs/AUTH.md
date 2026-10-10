@@ -108,8 +108,8 @@ pnpm --dir frontend build
 7. 瀏覽器 Supabase anon/authenticated client 直接讀寫四張資料表被拒絕；server 表單 API 正常運作。
 8. 資料庫無法存取時顯示紀錄載入失敗，而不是空白成功紀錄。
 
-隔離的開發 Supabase 專案已建立並完成建表；provider 設定尚待完成，真實授權、資料庫
-表單寫入、跨帳號與跨裝置流程尚未驗證。
+隔離的開發 Supabase 專案已完成建表、Google provider、callback 與資料庫連線設定。
+Google 真實授權及建立／填答紀錄已驗證；LINE provider、跨帳號與跨裝置流程仍待完成。
 
 ## 5. 後續擴充
 
@@ -175,4 +175,34 @@ LINE 使用 `custom:line`，與 Google 共用 callback 與帳號紀錄。
 - Boundaries Dev（lmzqhamtvktsmxhtcmys）先查詢 public schema 為空，再執行
   schema.sql 與 account-history.sql。四張表 RLS=true、anon/authenticated SELECT=false，
   兩個 Auth foreign keys 已存在。正式 schema 未變更。
-- 真實 Google／LINE 登入、個人紀錄寫入與跨帳號隔離仍待 provider／開發連線設定。
+- LINE channel 與官方帳號仍待管理者完成條款／手機驗證；LINE provider 尚未啟用。
+- Google 的實際驗證結果見下節；第二個帳號及跨裝置隔離尚未驗證。
+
+
+## Google 真實登入驗證（2026-10-10）
+
+僅使用隔離的 Boundaries Dev；正式資料庫與正式登入開關未變更。
+
+- Arc 完成 Google 本人驗證與授權，callback 回到 localhost:3000/account。
+- 登入後透過網站建立一份標示「開發驗證」的表單並回答 Yes，建立與填答清單都出現該表單，展開答案正確。
+- 登出後網站顯示 Guest mode；不帶登入 cookie 的 API 請求可建立及填答訪客驗證表單（皆 201）。
+- 以只讀查詢確認登入表單與填答歸屬同一 Auth user；訪客 owner_id／user_id 都是 null。
+- 重新登入同一 Google 帳號，原有建立／填答紀錄仍在，訪客表單沒有加入個人清單。
+- 只讀交易切換 anon／authenticated role，直接讀取 surveys 皆被拒絕（42501）；公開 Supabase REST API 讀取也被拒絕。
+- 這次保留兩份明確標示的開發驗證表單供檢查，沒有寫入正式環境。
+- 尚未驗證第二個帳號、另一台裝置、手機 Safari 或 LINE 真實 OAuth。
+
+### 本機開發連線的 TLS 憑證
+
+Supabase session pooler 使用 Supabase CA。若收到 SELF_SIGNED_CERT_IN_CHAIN，下載
+[官方 Dashboard 使用的 CA 憑證](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt)，
+在本機持久路徑保存，再於 DATABASE_URL 與 DIRECT_URL 加上
+`sslmode=verify-full&sslrootcert=<URL encoded absolute certificate path>`。
+保留 CA 與主機名稱驗證，不能以 `rejectUnauthorized: false` 處理。
+參考 [Supabase SSL 文件](https://supabase.com/docs/guides/platform/ssl-enforcement)。
+
+本機若保留正式 `.env.local`，隔離開發設定可放 Git 忽略的
+`frontend/.env.development.local`，Next.js 開發模式優先讀取這個檔案；不要覆蓋正式連線。
+此檔案不會套用到 production build。Prisma CLI 或獨立 Node 指令必須明確載入隔離開發環境，
+例如 Node 的 `--env-file=.env.development.local`，不要假設它們會讀取 Next.js 的環境檔優先順序。
+更新密碼後需重新驗證連線；若執行中的程序保留舊連線，重新啟動開發伺服器。

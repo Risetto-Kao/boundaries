@@ -5,7 +5,8 @@
       "codex/swipe-card-deck": false,
       "codex/google-login-history": false,
       "codex/iphone-home-screen": false,
-      "codex/line-auth-setup": false
+      "codex/line-auth-setup": false,
+      "codex/google-auth-verification": false
     }
   }
 }
