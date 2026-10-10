@@ -46,8 +46,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <h2 id="created-heading" className="text-xl font-semibold">{t("createdForms")}</h2>
           {history[0].length === 0 && <p className="feedback text-muted-foreground">{t("noCreatedHistory")}</p>}
           {history[0].slice(0, pageSize).map((survey) => <article key={survey.id} className="history-row space-y-3">
-            <h3 className="break-words font-semibold">{survey.title}</h3><p className="text-sm text-muted-foreground">{formatDate(locale, survey.createdAt, true)} · {t("responseCount", { count: survey._count.responses })}</p>
-            <div className="flex flex-wrap gap-4"><Link className="text-action" href={`/surveys/${survey.id}`}>{t("openShare")}</Link><Link className="text-action" href={`/surveys/${survey.id}/results`}>{t("viewResults")}</Link></div>
+            <h3 className="font-semibold [overflow-wrap:anywhere]">{survey.title}</h3><p className="text-sm text-muted-foreground">{formatDate(locale, survey.createdAt, true)} · {t("responseCount", { count: survey._count.responses })}</p>
+            <div className="flex flex-wrap gap-4"><Link aria-label={`${t("openShare")}: ${survey.title}`} className="text-action" href={`/surveys/${survey.id}`}>{t("openShare")}</Link><Link aria-label={t("resultsLabel", { title: survey.title })} className="text-action" href={`/surveys/${survey.id}/results`}>{t("viewResults")}</Link></div>
           </article>)}
           <nav aria-label={t("createdPagination")} className="flex flex-wrap gap-3">{createdPage > 1 && <Link className={buttonVariants({ variant: "outline" })} href={href(createdPage - 1, filledPage)}>{t("previousPage")}</Link>}{history[0].length > pageSize && <Link className={buttonVariants({ variant: "outline" })} href={href(createdPage + 1, filledPage)}>{t("nextPage")}</Link>}</nav>
         </section>
@@ -55,9 +55,9 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <h2 id="filled-heading" className="text-xl font-semibold">{t("filledForms")}</h2>
           {history[1].length === 0 && <p className="feedback text-muted-foreground">{t("noFilledHistory")}</p>}
           {history[1].slice(0, pageSize).map((response) => <article key={response.id} className="history-row space-y-3">
-            <h3 className="break-words font-semibold">{response.survey.title}</h3><p className="break-words text-sm text-muted-foreground">{formatDate(locale, response.submittedAt, true)} · {t("nicknameValue", { name: response.nickname })}</p>
-            <Link className="text-action" href={`/surveys/${response.survey.id}/results`}>{t("groupResults")}</Link>
-            <details><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-brand">{t("myAnswers")}</summary><dl className="space-y-3 border-t pt-3">{response.answers.map((answer) => <div key={answer.id}><dt className="break-words text-sm text-muted-foreground">{answer.question.text}</dt><dd className="mt-1 font-medium">{(["yes", "no", "depends"] as const).find((value) => value === answer.value) ? <AnswerBadge answer={answer.value as "yes" | "no" | "depends"} label={t(answer.value as "yes" | "no" | "depends")} /> : answer.value}</dd></div>)}</dl></details>
+            <h3 className="font-semibold [overflow-wrap:anywhere]">{response.survey.title}</h3><p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{formatDate(locale, response.submittedAt, true)} · {t("nicknameValue", { name: response.nickname })}</p>
+            <Link aria-label={`${t("groupResults")}: ${response.survey.title}`} className="text-action" href={`/surveys/${response.survey.id}/results`}>{t("groupResults")}</Link>
+            <details><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-brand">{t("myAnswers")}</summary><dl className="space-y-3 border-t pt-3">{response.answers.map((answer) => <div key={answer.id}><dt className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{answer.question.text}</dt><dd className="mt-1 font-medium [overflow-wrap:anywhere]">{(["yes", "no", "depends"] as const).find((value) => value === answer.value) ? <AnswerBadge answer={answer.value as "yes" | "no" | "depends"} label={t(answer.value as "yes" | "no" | "depends")} /> : answer.value}</dd></div>)}</dl></details>
           </article>)}
           <nav aria-label={t("filledPagination")} className="flex flex-wrap gap-3">{filledPage > 1 && <Link className={buttonVariants({ variant: "outline" })} href={href(createdPage, filledPage - 1)}>{t("previousPage")}</Link>}{history[1].length > pageSize && <Link className={buttonVariants({ variant: "outline" })} href={href(createdPage, filledPage + 1)}>{t("nextPage")}</Link>}</nav>
         </section>

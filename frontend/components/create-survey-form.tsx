@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/i18n-provider";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { LoadingSpinner } from "@/components/loading-indicator";
@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const MAX_QUESTIONS = 20;
-
 
 interface CreateSurveyResult {
   surveyId: string;
@@ -32,6 +31,11 @@ export function CreateSurveyForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [createResult, setCreateResult] = useState<CreateSurveyResult | null>(null);
+  const successHeadingRef = useRef<HTMLHeadingElement | null>(null);
+
+  useEffect(() => {
+    if (createResult) successHeadingRef.current?.focus();
+  }, [createResult]);
 
   const questionCount = questions.length;
   const hasReachedQuestionLimit = questionCount >= MAX_QUESTIONS;
@@ -157,7 +161,7 @@ export function CreateSurveyForm() {
         </div>
       </form>
       {createResult && <section role="status" className="feedback feedback-success space-y-4">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><Check size={24} aria-hidden="true" />{t("created")}</h2>
+        <h2 ref={successHeadingRef} tabIndex={-1} className="flex items-center gap-2 text-xl font-bold focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring"><Check size={24} aria-hidden="true" />{t("created")}</h2>
         <div className="flex flex-wrap gap-3">
           <CopyLinkButton label={t("copySurvey")} path={createResult.fillUrl} />
           <CopyLinkButton label={t("copyResults")} path={createResult.resultUrl} />

@@ -88,8 +88,8 @@ export function SurveyResults({ questions, participants, answers }: SurveyResult
 
                   return (
                     <div key={value} className={cn("min-w-0 rounded-lg p-4", ANSWER_STYLE[value])}>
-                      <h3 className="mb-2 flex items-center justify-between gap-2 font-semibold">
-                        <span className="inline-flex items-center gap-2"><Icon size={20} aria-hidden="true" />{label}</span><span className="text-xs font-normal">{t("peopleCount", { count: respondents.length })}</span>
+                      <h3 className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 font-semibold">
+                        <span className="inline-flex items-center gap-2"><Icon size={20} className="shrink-0" aria-hidden="true" />{label}</span><span className="text-xs font-normal">{t("peopleCount", { count: respondents.length })}</span>
                       </h3>
                       {respondents.length > 0 ? (
                         <ul className="flex flex-wrap gap-2">

@@ -162,6 +162,8 @@ const messages = {
   "surveyMissing": "Survey not found or has no questions",
   "answersMismatch": "Answers don't match the survey questions",
   "duplicateNickname": "This nickname has already submitted a response",
+  "pageUnavailable": "This page is temporarily unavailable",
+  "pageRetry": "Try reloading later, or return to forms.",
   "notFound": "Page not found",
   "notFoundDescription": "The link may be invalid or the survey no longer exists."
 } satisfies Messages;
