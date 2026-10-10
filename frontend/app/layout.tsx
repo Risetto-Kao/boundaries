@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-page-custom-font -- App Router root layout loads the shared stylesheet on every route. */
 import { getI18n } from "@/lib/i18n/server";
 import { I18nProvider } from "@/components/i18n-provider";
 import type { Metadata, Viewport } from "next";
@@ -23,7 +24,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#F1EEF8",
+  themeColor: "#FAF9FF",
 };
 
 export default async function RootLayout({
@@ -34,6 +35,7 @@ export default async function RootLayout({
   const { locale } = await getI18n();
   return (
     <html lang={locale}>
+      <head><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" /></head>
       <body className="antialiased"><I18nProvider initialLocale={locale}><AccountNav />{children}</I18nProvider></body>
     </html>
   );

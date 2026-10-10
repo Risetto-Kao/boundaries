@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { detectSurveyLanguage } from "@/lib/design";
 import type { Answer } from "@/types/survey";
 import { getSurveyCreators } from "@/lib/survey-creators";
 
@@ -15,6 +16,7 @@ export async function getRecentSurveys(limit = 10) {
       take: limit,
       select: {
         ...surveyFields,
+        questions: { select: { text: true } },
         _count: {
           select: {
             responses: true,
@@ -23,7 +25,7 @@ export async function getRecentSurveys(limit = 10) {
       },
     });
     const creators = await getSurveyCreators(surveys.map(({ id }) => id));
-    return surveys.map((survey) => ({ ...survey, creator: creators.get(survey.id)! }));
+    return surveys.map((survey) => ({ ...survey, language: detectSurveyLanguage(survey.title, survey.questions), creator: creators.get(survey.id)! }));
   } catch {
     return [];
   }
@@ -37,6 +39,7 @@ export async function getAllSurveys({ throwOnError = false } = {}) {
       },
       select: {
         ...surveyFields,
+        questions: { select: { text: true } },
         _count: {
           select: {
             responses: true,
@@ -45,7 +48,7 @@ export async function getAllSurveys({ throwOnError = false } = {}) {
       },
     });
     const creators = await getSurveyCreators(surveys.map(({ id }) => id));
-    return surveys.map((survey) => ({ ...survey, creator: creators.get(survey.id)! }));
+    return surveys.map((survey) => ({ ...survey, language: detectSurveyLanguage(survey.title, survey.questions), creator: creators.get(survey.id)! }));
   } catch (error) {
     if (throwOnError) throw error;
     return [];

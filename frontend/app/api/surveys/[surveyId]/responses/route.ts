@@ -8,6 +8,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createValidationSchemas } from "@/lib/validations";
 
+class ResponseValidationError extends Error { constructor(public status: number, message: string) { super(message); } }
+
 export async function POST(
   request: Request,
   context: {
@@ -41,45 +43,49 @@ export async function POST(
 
     const { nickname, answers, surveyId: validSurveyId } = parsedInput.data;
 
-    const questions = await prisma.question.findMany({
-      where: {
-        surveyId: validSurveyId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (questions.length === 0) {
-      return NextResponse.json({ error: t("surveyMissing") }, { status: 404 });
-    }
-
-    if (answers.length !== questions.length) {
-      return NextResponse.json({ error: t("allRequired") }, { status: 400 });
-    }
-
-    const questionIdSet = new Set(questions.map((question) => question.id));
-    const answerQuestionIdSet = new Set(answers.map((answer) => answer.questionId));
-    const hasInvalidQuestion = [...answerQuestionIdSet].some((questionId) => !questionIdSet.has(questionId));
-    if (hasInvalidQuestion || answerQuestionIdSet.size !== questionIdSet.size) {
-      return NextResponse.json({ error: t("answersMismatch") }, { status: 400 });
-    }
-
-    const response = await prisma.response.create({
-      data: {
-        ...(isAccountHistoryEnabled() ? { userId: user?.id ?? null } : {}),
-        surveyId: validSurveyId,
-        nickname: nickname.trim(),
-        answers: {
-          create: answers.map((answer) => ({
-            questionId: answer.questionId,
-            value: answer.value,
-          })),
+    const response = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM surveys WHERE id = ${validSurveyId} FOR UPDATE`;
+      const questions = await tx.question.findMany({
+        where: {
+          surveyId: validSurveyId,
         },
-      },
-      select: {
-        id: true,
-      },
+        select: {
+          id: true,
+        },
+      });
+
+      if (questions.length === 0) {
+        throw new ResponseValidationError(404, t("surveyMissing"));
+      }
+
+      if (answers.length !== questions.length) {
+        throw new ResponseValidationError(400, t("allRequired"));
+      }
+
+      const questionIdSet = new Set(questions.map((question) => question.id));
+      const answerQuestionIdSet = new Set(answers.map((answer) => answer.questionId));
+      const hasInvalidQuestion = [...answerQuestionIdSet].some((questionId) => !questionIdSet.has(questionId));
+      if (hasInvalidQuestion || answerQuestionIdSet.size !== questionIdSet.size) {
+        throw new ResponseValidationError(400, t("answersMismatch"));
+      }
+
+      return await tx.response.create({
+        data: {
+          ...(isAccountHistoryEnabled() ? { userId: user?.id ?? null } : {}),
+          surveyId: validSurveyId,
+          nickname: nickname.trim(),
+          answers: {
+            create: answers.map((answer) => ({
+              questionId: answer.questionId,
+              value: answer.value,
+            })),
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
     });
 
     return NextResponse.json(
@@ -90,6 +96,7 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof ResponseValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof SyntaxError) return NextResponse.json({ error: t("invalidInput") }, { status: 400 });
     if (error instanceof AuthUnavailableError) {
       return NextResponse.json({ error: t("sessionRetry") }, { status: 503 });

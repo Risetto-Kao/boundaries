@@ -1,66 +1,27 @@
-import { getI18n } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
-
-import { CopyLinkButton } from "@/components/copy-link-button";
+import { getI18n } from "@/lib/i18n/server";
+import { InviteDialog } from "@/components/invite-dialog";
 import { SurveyResults } from "@/components/survey-results";
-import { CreatorAttribution } from "@/components/creator-attribution";
+import { Avatar, StatusArt } from "@/components/design-primitives";
 import { getSurveyMatrixData } from "@/lib/surveys";
 import { surveyIdSchema } from "@/lib/validations";
 
 export const revalidate = 0;
-
-export default async function SurveyResultPage({
-  params,
-}: {
-  params: Promise<{
-    surveyId: string;
-  }>;
-}) {
-  const { t } = await getI18n();
-  const { surveyId } = await params;
-  const parsedSurveyId = surveyIdSchema.safeParse(surveyId);
-
-  if (!parsedSurveyId.success) {
-    notFound();
-  }
-
-  const matrix = await getSurveyMatrixData(parsedSurveyId.data);
-  if (!matrix) {
-    notFound();
-  }
-
-  const fillPath = `/surveys/${matrix.survey.id}`;
-
-  return (
-    <main className="page-shell">
-      <div className="min-w-0 space-y-6">
-        <header>
-          <h1 className="page-heading">{t("resultsTitle", { title: matrix.survey.title })}</h1>
-          <p className="page-description">
-            {matrix.survey.description ?? t("resultsDescription")}
-          </p>
-          <CreatorAttribution creator={matrix.survey.creator} />
-        </header>
-        <div className="flex flex-wrap gap-2">
-          <CopyLinkButton label={t("inviteFriends")} path={fillPath} />
-        </div>
-
-        <p className="text-muted-foreground">
-          {t("resultsSummary", { people: matrix.participants.length, questions: matrix.questions.length })}
-        </p>
-
-        {matrix.participants.length === 0 ? (
-          <p className="empty-state text-muted-foreground">
-            {t("noResponses")}
-          </p>
-        ) : (
-          <SurveyResults
-            questions={matrix.questions.map(({ id, text }) => ({ id, text }))}
-            participants={matrix.participants}
-            answers={matrix.answers}
-          />
-        )}
-      </div>
-    </main>
-  );
+export default async function SurveyResultPage({ params }: { params: Promise<{ surveyId: string }> }) {
+  const { t } = await getI18n(); const { surveyId } = await params;
+  if (!surveyIdSchema.safeParse(surveyId).success) notFound();
+  const matrix = await getSurveyMatrixData(surveyId);
+  if (!matrix) notFound();
+  const creator = matrix.survey.creator;
+  const creatorName = creator.name || t(creator.kind === "member" ? "creatorMember" : creator.kind === "unavailable" ? "creatorUnavailable" : "creatorUnknown");
+  return <main>
+    <header className="results-hero"><div className="page-shell results-hero-inner">
+      <div className="results-hero-copy"><p className="eyebrow mb-5">{t("resultsEyebrow")}</p><h1 className="page-heading">{matrix.survey.title}</h1>
+        {matrix.survey.description && <p className="results-description">{matrix.survey.description}</p>}
+        <div className="results-info"><span className="avatar-stack">{matrix.participants.map((person, index) => <Avatar key={person.id} name={person.nickname} index={index} size={32} />)}</span><span>{t("resultsSummary", { people: matrix.participants.length, questions: matrix.questions.length })}</span><span>{t("createdBy", { name: creatorName })}</span></div>
+        <InviteDialog inverted title={matrix.survey.title} path={`/surveys/${matrix.survey.id}`} />
+      </div><div className="results-art"><StatusArt /></div>
+    </div></header>
+    <div className="page-shell"><SurveyResults questions={matrix.questions.map(({ id, text }) => ({ id, text }))} participants={matrix.participants} answers={matrix.answers} /></div>
+  </main>;
 }

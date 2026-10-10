@@ -1,155 +1,42 @@
 "use client";
 
-import { useI18n } from "@/components/i18n-provider";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { LayoutGrid, List } from "lucide-react";
-
+import { useI18n } from "@/components/i18n-provider";
 import { AnswerBadge, ANSWER_ICON } from "@/components/answer-badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAnswerOptions, ANSWER_STYLE } from "@/lib/answer-meta";
-import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/design-primitives";
+import { disagreementBackground, disagreementScore } from "@/lib/design";
 import type { Answer } from "@/types/survey";
 
-type ResultsView = "question" | "matrix";
-
-interface SurveyResultsProps {
-  questions: { id: string; text: string }[];
-  participants: { id: string; nickname: string }[];
-  answers: Record<string, Record<string, Answer>>;
-}
-
-// Match Tailwind's md breakpoint. CSS also applies the default before hydration.
-const MATRIX_MEDIA_QUERY = "(min-width: 768px)";
-
-function subscribeToWidth(onChange: () => void) {
-  const media = window.matchMedia(MATRIX_MEDIA_QUERY);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-}
-
-function getWideScreenSnapshot() {
-  return window.matchMedia(MATRIX_MEDIA_QUERY).matches;
-}
-
-function getServerSnapshot() {
-  return false;
-}
-
-export function SurveyResults({ questions, participants, answers }: SurveyResultsProps) {
+interface Props { questions: { id: string; text: string }[]; participants: { id: string; nickname: string }[]; answers: Record<string, Record<string, Answer>> }
+export function SurveyResults({ questions, participants, answers }: Props) {
   const { t } = useI18n();
-  const [view, setView] = useState<ResultsView | null>(null);
-  const isWideScreen = useSyncExternalStore(subscribeToWidth, getWideScreenSnapshot, getServerSnapshot);
-  const activeView = view ?? (isWideScreen ? "matrix" : "question");
-
-  return (
-    <div className="min-w-0 space-y-4">
-      <div role="group" aria-label={t("resultsMode")} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:inline-grid">
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn("h-11 px-3", view === null ? "bg-card text-brand md:bg-transparent md:text-foreground" : view === "question" && "bg-card text-brand")}
-          aria-pressed={activeView === "question"}
-          aria-controls="question-results"
-          aria-label={t("questionView")}
-          title={t("questionView")}
-          onClick={() => setView("question")}
-        >
-          <List aria-hidden="true" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn("h-11 px-3", view === null ? "md:bg-card md:text-brand" : view === "matrix" && "bg-card text-brand")}
-          aria-pressed={activeView === "matrix"}
-          aria-controls="matrix-results"
-          aria-label={t("matrixView")}
-          title={t("matrixView")}
-          onClick={() => setView("matrix")}
-        >
-          <LayoutGrid aria-hidden="true" />
-        </Button>
-      </div>
-
-      <div id="question-results" className={cn("space-y-4", view === null ? "md:hidden" : view !== "question" && "hidden")}>
-        {questions.map((question, index) => {
-          const unanswered = participants.filter((participant) => !answers[participant.id]?.[question.id]);
-
-          return (
-            <section key={question.id} aria-labelledby={`question-${question.id}`} className="min-w-0 space-y-5 border-t border-border py-6">
-              <div>
-                <p className="mb-1 text-xs font-semibold text-muted-foreground">Q{index + 1}</p>
-                <h2 id={`question-${question.id}`} className="text-lg font-bold leading-relaxed text-foreground [overflow-wrap:anywhere]">
-                  {question.text}
-                </h2>
-              </div>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-3">
-                {getAnswerOptions(t).map(({ value, label }) => {
-                  const Icon = ANSWER_ICON[value];
-                  const respondents = participants.filter((participant) => answers[participant.id]?.[question.id] === value);
-
-                  return (
-                    <div key={value} className={cn("min-w-0 rounded-lg p-4", ANSWER_STYLE[value])}>
-                      <h3 className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 font-semibold">
-                        <span className="inline-flex items-center gap-2" title={label}><Icon size={24} className="shrink-0" aria-hidden="true" /><span className="sr-only">{label}</span></span><span className="text-3xl font-extrabold tabular-nums leading-none" aria-label={t("peopleCount", { count: respondents.length })}>{respondents.length}</span>
-                      </h3>
-                      {respondents.length > 0 ? (
-                        <ul className="flex flex-wrap gap-2">
-                          {respondents.map((participant) => (
-                            <li key={participant.id} className="max-w-full rounded-md bg-card px-2 py-1 text-sm text-foreground [overflow-wrap:anywhere]">
-                              {participant.nickname}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-              {unanswered.length > 0 && (
-                <p className="text-xs leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
-                  {t("unanswered")}: {unanswered.map((participant) => participant.nickname).join(", ")}
-                </p>
-              )}
-            </section>
-          );
-        })}
-      </div>
-
-      <div id="matrix-results" className={cn("min-w-0", view === null ? "hidden md:block" : view !== "matrix" && "hidden")}>
-        <Table aria-label={t("matrixView")} className="table-fixed" style={{ width: 260 + participants.length * 176, minWidth: "100%" }}>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col" className="w-[260px] py-4">{t("questionPeople")}</TableHead>
-              {participants.map((participant) => (
-                <TableHead key={participant.id} scope="col" className="w-44 px-4 py-4 align-top whitespace-normal [overflow-wrap:anywhere]">{participant.nickname}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {questions.map((question, index) => (
-              <TableRow key={question.id}>
-                <TableHead scope="row" className="w-[260px] py-5 align-top whitespace-normal [overflow-wrap:anywhere]">
-                  <div className="mb-2 text-xs font-bold text-brand">Q{index + 1}</div>
-                  <div className="font-semibold text-foreground">{question.text}</div>
-                </TableHead>
-                {participants.map((participant) => {
-                  const answer = answers[participant.id]?.[question.id];
-                  return (
-                    <TableCell key={participant.id} className="px-4 py-5 align-top">
-                      {answer ? (
-                        <AnswerBadge answer={answer} label={t(answer)} />
-                      ) : (
-                        <span className="text-muted-foreground" aria-label={t("unanswered")}>-</span>
-                      )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+  const [view, setView] = useState<"matrix" | "list">("matrix");
+  const compact = participants.length >= 3;
+  const gridStyle = { gridTemplateColumns: compact ? `minmax(180px,2fr) repeat(${participants.length},56px)` : `minmax(0,1.7fr)${participants.length ? ` repeat(${participants.length},minmax(0,1fr))` : ""}` };
+  const values = (questionId: string) => participants.map(person => answers[person.id]?.[questionId]);
+  return <div className="min-w-0">
+    <div className="results-toolbar">
+      <div role="group" aria-label={t("resultsMode")} className="segmented"><button type="button" aria-label={t("matrixView")} title={t("matrixView")} aria-pressed={view === "matrix"} aria-controls="matrix-results" onClick={() => setView("matrix")}><LayoutGrid size={20} aria-hidden="true" /></button><button type="button" aria-label={t("questionView")} title={t("questionView")} aria-pressed={view === "list"} aria-controls="question-results" onClick={() => setView("list")}><List size={20} aria-hidden="true" /></button></div>
+      <div className="results-legend">{view === "matrix" && (["yes", "depends", "no"] as const).map(value => <span key={value}><i className={`legend-dot ${value === "depends" ? "answer-depends" : `answer-${value}`}`} aria-hidden="true" />{t(value)}</span>)}<div className="disagreement-legend"><span>{t("agree")}</span><i className="disagreement-gradient" aria-hidden="true" /><span>{t("disagree")}</span></div></div>
     </div>
-  );
+    {view === "matrix" ? <div id="matrix-results" className={`matrix-card ${compact ? "matrix-compact" : ""}`} role="region" aria-label={t("matrixView")} tabIndex={0}>
+      <div role="table" aria-label={t("matrixView")} style={{ minWidth: compact ? 720 : undefined }}>
+        <div role="row" className="matrix-grid matrix-header" style={gridStyle}><div role="columnheader" className="px-7 py-5 text-[13px] font-extrabold tracking-[.08em] text-muted-foreground">{t("questionPeople")}</div>{participants.map((person, index) => <div role="columnheader" key={person.id} className="matrix-person" title={person.nickname} aria-label={person.nickname}><Avatar name={person.nickname} index={index} /><span className="matrix-person-name">{person.nickname}</span></div>)}</div>
+        {questions.map((question, index) => <div role="row" key={question.id} className="matrix-grid matrix-row" data-disagreement={disagreementScore(values(question.id))} style={{ ...gridStyle, background: disagreementBackground(values(question.id)) }}>
+          <div role="rowheader" className="matrix-question"><span className="question-number">Q{index + 1}</span><span>{question.text}</span><span className="sr-only">{t(disagreementScore(values(question.id)) > 0 ? "disagree" : "agree")}</span></div>
+          {participants.map(person => { const answer = answers[person.id]?.[question.id]; return <div role="cell" key={person.id} className="matrix-answer">{answer ? <AnswerBadge answer={answer} label={t(answer)} compact={compact} /> : <span className="unanswered-circle" aria-label={t("unanswered")} title={t("unanswered")} />}</div>; })}
+        </div>)}
+      </div>
+    </div> : <div id="question-results" className="space-y-3">{questions.map((question, index) => <section key={question.id} className="result-list-card" aria-labelledby={`question-${question.id}`} data-disagreement={disagreementScore(values(question.id))} style={{ background: disagreementBackground(values(question.id)) }}>
+      <h2 id={`question-${question.id}`} className="result-list-heading"><span className="question-number">Q{index + 1}</span><span className="[overflow-wrap:anywhere]">{question.text}</span><span className="sr-only">{t(disagreementScore(values(question.id)) > 0 ? "disagree" : "agree")}</span></h2>
+      <div className="space-y-2">{(["yes", "depends", "no"] as const).map(value => {
+        const people = participants.filter(person => answers[person.id]?.[question.id] === value);
+        if (!people.length) return null;
+        const Icon = ANSWER_ICON[value]; const token = value === "depends" ? "maybe" : value;
+        return <div key={value} role="group" aria-label={`${t(value)}, ${t("peopleCount", { count: people.length })}`} className="answer-group" style={{ background: `var(--${token}-50)` }}><div className={`answer-group-count answer-${value}`}><Icon size={26} strokeWidth={2.5} aria-hidden="true" /><span>{people.length}</span></div><ul className="answer-group-people">{people.map(person => <li key={person.id} className="answer-group-person"><Avatar size={28} name={person.nickname} index={participants.findIndex(p => p.id === person.id)} /><span>{person.nickname}</span></li>)}</ul></div>;
+      })}</div>
+      {participants.some(person => !answers[person.id]?.[question.id]) && <p className="mt-3 text-xs text-muted-foreground [overflow-wrap:anywhere]">{t("unanswered")}: {participants.filter(person => !answers[person.id]?.[question.id]).map(person => person.nickname).join(", ")}</p>}
+    </section>)}</div>}
+  </div>;
 }

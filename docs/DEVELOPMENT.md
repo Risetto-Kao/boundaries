@@ -32,6 +32,7 @@ pnpm start
 請求來源與 provider 設定；`pnpm --dir frontend test:i18n` 驗證語言協商、多語輸入與
 驗證提示隔離，詳見 [多語言指南](I18N.md)。lint/typecheck/build 不等於功能測試。
 CI 對 master push 與指向 master 的 PR 執行上述三項檢查。
+`pnpm --dir frontend test:design` 驗證分歧公式與內容語言偵測，CI 也會執行。
 Prisma client 在 install 的 postinstall 階段產生，不需要真實資料庫。
 
 ## Environment variables
@@ -136,8 +137,9 @@ master push / PR merge 會觸發正式部署；已實測 feature branch push 經
 成功建立 Preview。Node 20 已被 Vercel 停用，新建置統一使用 Node 24。
 Node 24 驗證 Preview：https://boundaries-8uh7vlave-risettokaos-projects.vercel.app
 手機存取與實際 UI 仍需驗證。
-目前只有 `codex/node24-deployment` branch 的 DATABASE_URL/DIRECT_URL 設為 localhost
-占位值；其他 branch 仍繼承既有 All Environments 設定。建立其他 Preview 前，
+`codex/node24-deployment` 與本次 `codex/design-spec-alignment` branch 已設定
+Preview 專用 DATABASE_URL/DIRECT_URL localhost 占位值；其他 branch 需個別確認是否
+繼承既有 All Environments 設定。建立其他 Preview 前，
 必須先配置隔離開發 DB 或該 branch 的離線占位值，不得對 production DB 試填問卷。
 不要為了測試 Cloud 推 master。GitHub CI 不代表 Vercel 必然等待 CI 成功才部署；
 目前沒有替你更改 branch protection 或 deployment protection。
