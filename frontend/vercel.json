@@ -6,7 +6,8 @@
       "codex/google-login-history": false,
       "codex/iphone-home-screen": false,
       "codex/line-auth-setup": false,
-      "codex/google-auth-verification": false
+      "codex/google-auth-verification": false,
+      "codex/line-provider-configuration": false
     }
   }
 }
