@@ -13,7 +13,8 @@
       "codex/line-auth-verification": false,
       "codex/boundary-ui-copy": false,
       "codex/refine-boundary-experience": false,
-      "codex/template-form-separation": false
+      "codex/template-form-separation": false,
+      "codex/fix-form-generation-config": false
     }
   }
 }

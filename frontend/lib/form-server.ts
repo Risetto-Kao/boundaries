@@ -7,7 +7,7 @@ import { isSameOrigin } from "./auth/config";
 import { getRequestI18n } from "./i18n/server";
 import { prisma } from "./prisma";
 import { FormError, FormService } from "./form-service";
-import { guestCookie } from "./form-tokens";
+import { FormAccessConfigurationError, guestCookie } from "./form-tokens";
 
 export const forms = new FormService(prisma);
 export async function formContext() {
@@ -29,7 +29,11 @@ export async function formRoute(request: Request, action: () => Promise<NextResp
     if (error instanceof SyntaxError) return formJson({ error: t("invalidInput") }, 400);
     if (error instanceof AuthUnavailableError) return formJson({ error: t("sessionRetry") }, 503);
     // Avoid logging request bodies, tokens, connection strings or answer values.
-    console.error("Form operation failed", error instanceof Error ? error.name : "unknown");
+    if (error instanceof FormAccessConfigurationError) {
+      console.error("Form operation failed", error.name, error.reason);
+    } else {
+      console.error("Form operation failed", error instanceof Error ? error.name : "unknown");
+    }
     return formJson({ error: t("pageRetry") }, 503);
   }
 }

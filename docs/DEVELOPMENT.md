@@ -59,6 +59,9 @@ Next.js 自動讀取 `.env.local`；Prisma CLI 不會讀取這個檔案。
 `node --env-file=.env.local node_modules/prisma/build/index.js <command>`。
 沒有 `DIRECT_URL` 時產生 client 仍可成功；資料庫命令則必須提供連線。
 不得為了測試執行 production migration、reset、seed 或 db push。
+使用者已授權為任務除錯與驗證，對指定的正式表單執行建立與一般表單 API
+寫入；不要建立無關範例資料或未經授權刪除既有資料。Cloud／Preview 寫入仍須
+使用隔離資料庫。
 現有 schema 尚無追蹤的 migration 歷史；建置不會自動修改 schema。
 
 ## Cloud development

@@ -40,7 +40,7 @@ Next.js／Prisma DB role 取得。程式的正式 DB role 必須擁有新表與 
 ## 正式上線順序
 
 **以下是可審閱的 operator 步驟，程式、build、CI 不會自動執行。**
-根目錄 AGENTS.md 禁止對 production 執行 migration 或寫入；在明確核准這次
+根目錄 AGENTS.md 要求正式 schema 變更另行授權；在明確核准這次
 新增 schema 前，不執行正式 SQL，也不 merge 導致程式先於資料表上線。
 
 1. 備份現有 DB，確認正式 Supabase 專案與目前 Prisma role。不要清理舊資料。
@@ -61,7 +61,8 @@ Next.js／Prisma DB role 取得。程式的正式 DB role 必須擁有新表與 
 6. 必要 checks 與 PR CI 通過、SQL／key 就緒後才合併到 master，觸發 Vercel。
    本分支 Preview 關閉，避免預覽誤接正式 DB；未改 DNS 或部署保護。
 7. 確認 Vercel Production Ready。正式 smoke 以唯讀的首頁／登入頁為限。
-   真實提交驗收須另外授權，不可為測試對正式 API 寫資料。
+   使用者已授權任務相關的正式表單建立與一般表單 API 寫入驗證；只操作
+   本次指定的表單，不建立無關範例資料或未經授權刪除既有資料。
 
 回滾應回到前一版程式部署；新增表保留。不要刪表、重置或處理舊資料。
 上線後新 public list 起初可能為空；舊紀錄仍在舊表，但新 UI 不顯示，符合本次
