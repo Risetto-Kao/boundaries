@@ -28,7 +28,8 @@ pnpm build
 pnpm start
 ```
 
-目前沒有完整的端到端自動測試套件。`pnpm --dir frontend test:auth` 只驗證登入導向、
+目前沒有完整的端到端自動測試套件。`test:forms` 是隔離 PostgreSQL 17 的表單／權限功能測試，
+詳見 [基底／可填寫表單上線](TEMPLATE-FORMS-ROLLOUT.md)。`pnpm --dir frontend test:auth` 只驗證登入導向、
 請求來源與 provider 設定；`pnpm --dir frontend test:i18n` 驗證語言協商、多語輸入與
 驗證提示隔離，詳見 [多語言指南](I18N.md)。lint/typecheck/build 不等於功能測試。
 CI 對 master push 與指向 master 的 PR 執行上述三項檢查。
@@ -46,7 +47,8 @@ Prisma client 在 install 的 postinstall 階段產生，不需要真實資料�
 | `DIRECT_URL` | development runtime 優先使用的連線，以及 Prisma CLI 的連線 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase client 的公開 project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client 的公開 anon/publishable key，仍需資料庫 RLS 保護 |
-| `ACCOUNT_HISTORY_ENABLED` | SQL／Google 設定完成後設為 true 才開啟登入，預設保留訪客與舊 schema 相容 |
+| `ACCOUNT_HISTORY_ENABLED` | OAuth 與 SQL 設定完成後設為 true 開啟登入；新基底／表單建立皆須登入 |
+| `FORM_ACCESS_KEY` | Server-only 32-byte hex secret；加密分享連結、發出訪客重試憑證，須在新版上線前設定 |
 | `AUTH_GOOGLE_ENABLED` | Google 供應商開關，預設 true；需先完成 Supabase provider 設定 |
 | `AUTH_LINE_ENABLED` | LINE custom OAuth 供應商開關，預設 false |
 | `AUTH_SITE_URL` | 本環境 OAuth callback 的網站 origin，例如 `http://localhost:3000`；Preview 使用自己的 URL |

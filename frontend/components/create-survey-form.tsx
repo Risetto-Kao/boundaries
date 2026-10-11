@@ -18,7 +18,7 @@ import { LoadingSpinner } from "@/components/loading-indicator";
 
 type EditorQuestion = { id: string; text: string };
 type InitialSurvey = { id: string; title: string; description: string | null; updatedAt: string; questions: EditorQuestion[] };
-type CreateResult = { surveyId: string; fillUrl: string; resultUrl: string };
+type CreateResult = { id: string; templateUrl: string };
 
 function QuestionRow({ question, index, removeDisabled, disabled, update, remove, move }: {
   question: EditorQuestion; index: number; removeDisabled: boolean; disabled: boolean;
@@ -87,9 +87,9 @@ export function CreateSurveyForm({ initialSurvey, signedIn = false, displayName 
     setBusy(true); setError("");
     const nonempty = questions.filter(question => question.text.trim());
     try {
-      const response = await fetch(initialSurvey ? `/api/surveys/${initialSurvey.id}` : "/api/surveys", {
+      const response = await fetch(initialSurvey ? `/api/templates/${initialSurvey.id}` : "/api/templates", {
         method: initialSurvey ? "PATCH" : "POST", headers: { "Content-Type": "application/json", "X-Boundaries-Locale": locale },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), ...(initialSurvey ? { updatedAt: revision, questions: nonempty.map(question => ({ ...(question.id.startsWith("new-") ? {} : { id: question.id }), text: question.text.trim() })) } : { questions: nonempty.map(question => question.text.trim()) }) }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), ...(initialSurvey ? { updatedAt: revision } : {}), questions: nonempty.map(question => question.text.trim()) }),
       });
       const payload = await response.json();
       if (!response.ok) { setError(payload.error ?? t(initialSurvey ? "saveFailed" : "createFailed")); return; }
@@ -97,16 +97,16 @@ export function CreateSurveyForm({ initialSurvey, signedIn = false, displayName 
         setRevision(payload.updatedAt); setQuestions(payload.questions); setSaved(true);
         if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setSaved(false), 1800);
         router.refresh();
-      } else { setResult(payload); setShareUrl(new URL(payload.fillUrl, window.location.origin).href); }
+      } else { setResult(payload); setShareUrl(new URL(payload.templateUrl, window.location.origin).href); }
     } catch { setError(t(initialSurvey ? "saveFailed" : "createFailed")); }
     finally { setBusy(false); }
   };
   const deleteSurvey = async () => {
     if (!initialSurvey || busy) return; setBusy(true); setError("");
     try {
-      const response = await fetch(`/api/surveys/${initialSurvey.id}`, { method: "DELETE", headers: { "X-Boundaries-Locale": locale } });
+      const response = await fetch(`/api/templates/${initialSurvey.id}`, { method: "DELETE", headers: { "X-Boundaries-Locale": locale } });
       if (!response.ok) { const payload = await response.json(); setError(payload.error ?? t("deleteFailed")); return; }
-      router.push("/surveys"); router.refresh();
+      router.push("/templates"); router.refresh();
     } catch { setError(t("deleteFailed")); }
     finally { setBusy(false); }
   };
@@ -119,12 +119,12 @@ export function CreateSurveyForm({ initialSurvey, signedIn = false, displayName 
     <h1 ref={successHeading} tabIndex={-1} className="text-[clamp(40px,6vw,56px)] leading-tight font-extrabold">{t("created")}</h1>
     <p className="mt-4 text-lg font-bold text-muted-foreground [overflow-wrap:anywhere]">{title}</p>
     <div className="link-row mt-8"><span className="link-row-text" title={shareUrl}>{shareUrl}</span><Button type="button" size="sm" onClick={copy}>{t(copied ? "copied" : "copyLink")}</Button></div>
-    <div className="mt-6 flex flex-wrap items-center justify-center gap-6"><Link href={result.fillUrl} className={buttonVariants({ variant: "outline" })}>{t("fillFirst")}</Link><Link href="/surveys" className="text-action">{t("backList")}</Link></div>
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-6"><Link href={result.templateUrl} className={buttonVariants({ variant: "outline" })}>{t("viewTemplate")}</Link><Link href="/templates" className="text-action">{t("backList")}</Link></div>
     {copied && <span role="status" className="sr-only">{t("copied")}</span>}{error && <p role="alert" className="feedback feedback-error mt-6">{error}</p>}
   </main>;
   return <>
     <header className="editor-bar"><div className="editor-bar-inner">
-      <Link href="/surveys" className={buttonVariants({ variant: "ghost", size: "icon", className: "text-foreground" })} aria-label={t("close")}><X size={24} aria-hidden="true" /></Link>
+      <Link href="/templates" className={buttonVariants({ variant: "ghost", size: "icon", className: "text-foreground" })} aria-label={t("close")}><X size={24} aria-hidden="true" /></Link>
       <div className="flex items-center gap-3">
         <DropdownMenu.Root><DropdownMenu.Trigger asChild><Button type="button" variant="ghost" size="icon" className="text-foreground" aria-label={t("language")}><Globe size={22} aria-hidden="true" /></Button></DropdownMenu.Trigger><DropdownMenu.Portal><DropdownMenu.Content align="end" sideOffset={8} className="filter-menu"><DropdownMenu.RadioGroup value={locale} onValueChange={value => setLocale(value as Locale)}>{(Object.keys(languages) as Locale[]).map(value => <DropdownMenu.RadioItem key={value} value={value} className="filter-item">{languages[value].name}<DropdownMenu.ItemIndicator><Check size={18} aria-hidden="true" /></DropdownMenu.ItemIndicator></DropdownMenu.RadioItem>)}</DropdownMenu.RadioGroup></DropdownMenu.Content></DropdownMenu.Portal></DropdownMenu.Root>
         <AccountMenu signedIn={signedIn} displayName={displayName} />
@@ -132,7 +132,8 @@ export function CreateSurveyForm({ initialSurvey, signedIn = false, displayName 
       </div>
     </div></header>
     <main className="page-shell page-shell-narrow editor-content">
-      <h1 className="editor-heading">{t(initialSurvey ? "editForm" : "newForm")}</h1>
+      <h1 className="editor-heading">{t(initialSurvey ? "editTemplate" : "newTemplate")}</h1>
+      <p className="page-description mb-6">{t("templateOnly")}</p>
       <form id="survey-editor" onSubmit={submit} aria-busy={busy}>
         <fieldset disabled={busy} className="min-w-0">
           <div className="editor-fields"><div><label className="field-label" htmlFor="survey-title">{t("title")}</label><Input id="survey-title" placeholder={t("titlePlaceholder")} value={title} onChange={event => setTitle(event.target.value)} maxLength={200} required className="text-[17px] font-bold" /></div><div><label className="field-label" htmlFor="survey-description">{t("description")}</label><Textarea id="survey-description" placeholder={t("descriptionPlaceholder")} value={description} onChange={event => setDescription(event.target.value)} maxLength={1000} /></div></div>
@@ -151,7 +152,7 @@ export function CreateSurveyForm({ initialSurvey, signedIn = false, displayName 
         </fieldset>
         {error && <p role="alert" className="feedback feedback-error mt-6">{error}</p>}
       </form>
-      {initialSurvey && <div className="mt-10 flex items-center justify-end gap-3 border-t border-border pt-5">{confirmDelete ? <><span className="font-extrabold">{t("confirmDelete")}</span><Button type="button" variant="outline" size="icon-lg" onClick={() => setConfirmDelete(false)} disabled={busy} aria-label={t("cancel")}><X aria-hidden="true" /></Button><Button type="button" size="icon-lg" onClick={deleteSurvey} disabled={busy} aria-label={t("deleteForm")} className="bg-[var(--no)] text-[var(--ink)] hover:bg-[var(--no)]"><Trash2 aria-hidden="true" /></Button></> : <Button type="button" size="icon-lg" onClick={() => setConfirmDelete(true)} aria-label={t("deleteForm")} className="bg-[var(--no-50)] text-destructive hover:bg-[var(--no-50)]"><Trash2 aria-hidden="true" /></Button>}</div>}
+      {initialSurvey && <div className="mt-10 flex items-center justify-end gap-3 border-t border-border pt-5">{confirmDelete ? <><span className="font-bold text-sm">{t("deleteTemplateWarning")}</span><Button type="button" variant="outline" size="icon-lg" onClick={() => setConfirmDelete(false)} disabled={busy} aria-label={t("cancel")}><X aria-hidden="true" /></Button><Button type="button" size="icon-lg" onClick={deleteSurvey} disabled={busy} aria-label={t("deleteForm")} className="bg-[var(--no)] text-[var(--ink)] hover:bg-[var(--no)]"><Trash2 aria-hidden="true" /></Button></> : <Button type="button" size="icon-lg" onClick={() => setConfirmDelete(true)} aria-label={t("deleteForm")} className="bg-[var(--no-50)] text-destructive hover:bg-[var(--no-50)]"><Trash2 aria-hidden="true" /></Button>}</div>}
       {saved && <div role="status" className="toast"><Check size={20} className="text-[var(--yes)]" aria-hidden="true" />{t("saved")}</div>}
     </main>
   </>;

@@ -11,8 +11,8 @@ import { ANSWER_STYLE } from "@/lib/answer-meta";
 import { AnswerBadge } from "@/components/answer-badge";
 import type { Answer } from "@/types/survey";
 
-interface Props { surveyId: string; defaultNickname?: string; questions: { id: string; text: string }[] }
-export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }: Props) {
+interface Props { formId: string; invite?: string; signedIn?: boolean; defaultNickname?: string; questions: { id: string; text: string }[] }
+export function SurveyResponseForm({ formId, invite, signedIn = false, questions, defaultNickname = "" }: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
   const [nickname, setNickname] = useState(defaultNickname);
@@ -29,6 +29,7 @@ export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }
   const summary = useRef<HTMLDivElement>(null);
   const pointer = useRef<{ id: number; x: number; y: number; maxMovement: number } | null>(null);
   const lastTap = useRef<{ time: number; x: number; y: number } | null>(null);
+  const requestKey = useRef<string | null>(null);
   const locked = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const focusNext = useRef(false);
@@ -37,7 +38,7 @@ export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }
   const busy = submitting || navigating || Boolean(exitAnswer);
   const canSubmit = Boolean((nickname.trim() || defaultNickname) && allAnswered && !busy);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  useEffect(() => { if (focusNext.current) { (allAnswered ? summary.current : card.current)?.focus(); focusNext.current = false; } }, [allAnswered, index]);
+  useEffect(() => { if (focusNext.current) { (questions[index] ? card.current : summary.current)?.focus(); focusNext.current = false; } }, [allAnswered, index, questions]);
   const answer = (value: Answer) => {
     const question = questions[index];
     if (!question || locked.current || submitting || navigating) return;
@@ -90,12 +91,12 @@ export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }
     if (!allAnswered) { setError(t("allRequired")); setErrorTarget("question"); return; }
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/surveys/${surveyId}/responses`, {
+      const response = await fetch(`/api/forms/${formId}/submissions`, {
         method: "POST", headers: { "Content-Type": "application/json", "X-Boundaries-Locale": locale },
-        body: JSON.stringify({ nickname: trimmedNickname, answers: questions.map(question => ({ questionId: question.id, value: answers[question.id] })) }),
+        body: JSON.stringify({ requestKey: requestKey.current ?? (requestKey.current = crypto.randomUUID()), invite, nickname: trimmedNickname, answers: questions.map(question => ({ questionId: question.id, value: answers[question.id] })) }),
       });
       const payload = await response.json();
-      if (!response.ok) { setError(payload.error ?? t("submitFailed")); if (response.status === 409) setErrorTarget("nickname"); return; }
+      if (!response.ok) { setError(payload.error ?? t("submitFailed")); return; }
       startNavigation(() => { router.push(payload.resultUrl); router.refresh(); });
     } catch { setError(t("submitFailed")); }
     finally { setSubmitting(false); }
@@ -113,14 +114,19 @@ export function SurveyResponseForm({ surveyId, questions, defaultNickname = "" }
         <div ref={card} tabIndex={-1} id="current-question" role="group" aria-labelledby="response-progress question-heading" aria-describedby="response-hint" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={cancel} onLostPointerCapture={() => { if (pointer.current) cancel(); }} className="question-card relative flex cursor-grab touch-none flex-col select-none active:cursor-grabbing motion-reduce:transition-none!" style={{ transform: `translate3d(${dragX}px,${exitAnswer === "depends" ? -700 : 0}px,0) rotate(${dragX / 18}deg)`, transition: dragging ? "none" : "transform .24s ease-out", pointerEvents: exitAnswer ? "none" : undefined }}>
           <div className="flex items-center justify-between gap-4 text-xs font-extrabold tracking-[.12em]"><span>BOUNDARIES</span><span>{String(index + 1).padStart(2, "0")} / {String(questions.length).padStart(2, "0")}</span></div>
           <h2 id="question-heading" className="my-auto py-5 text-[32px] leading-[1.3] font-extrabold [overflow-wrap:anywhere] [text-wrap:balance]">{question.text}</h2>
+          {answers[question.id] && <div className="mb-4"><AnswerBadge answer={answers[question.id]} label={t(answers[question.id])} /></div>}
           <span className="text-[13px] font-bold text-white/80">{t("swipeCardHint")}</span>
           {(Math.abs(dragX) > 0 || exitAnswer) && <div aria-hidden="true" className={`card-feedback ${ANSWER_STYLE[feedback]}`} style={{ opacity: exitAnswer ? 1 : Math.min(Math.abs(dragX) / 90, 1), background: `color-mix(in srgb, var(--${feedback === "depends" ? "maybe" : feedback}) 85%, transparent)` }}><FeedbackIcon size={72} strokeWidth={2.5} />{t(feedback)}</div>}
         </div>
       </div> : <div ref={summary} tabIndex={-1} className="answer-summary" aria-label={t("allDone")}>{questions.map((q, i) => <AnswerBadge key={q.id} answer={answers[q.id]} label={`Q${i + 1}`} ariaLabel={`Q${i + 1} ${t(answers[q.id])}`} />)}</div>}
     </div>
-    <div className="response-buttons">{([{ value: "no", Icon: X }, { value: "depends", Icon: Triangle }, { value: "yes", Icon: Check }] as const).map(({ value, Icon }) => <Button key={value} type="button" variant="answer" className={`${ANSWER_STYLE[value]} h-16 min-h-16 rounded-[24px] px-2 text-[15px] gap-1.5 whitespace-nowrap [&_svg]:size-[22px]`} onClick={() => answer(value)} disabled={busy || allAnswered} aria-label={t("answerAction", { answer: t(value) })}><Icon className="size-[22px]" strokeWidth={2.5} aria-hidden="true" /><span className="min-w-0 whitespace-normal leading-tight">{t(value)}</span></Button>)}</div>
+    {index > 0 && <Button type="button" variant="outline" disabled={busy} onClick={() => { cancel(); focusNext.current = true; setIndex(index - 1); }}>{t("previousQuestion")}</Button>}
+    <div className="response-buttons">{([{ value: "no", Icon: X }, { value: "depends", Icon: Triangle }, { value: "yes", Icon: Check }] as const).map(({ value, Icon }) => <Button key={value} type="button" variant="answer" className={`${ANSWER_STYLE[value]} h-16 min-h-16 rounded-[24px] px-2 text-[15px] gap-1.5 whitespace-nowrap [&_svg]:size-[22px]`} onClick={() => answer(value)} disabled={busy || !question} aria-label={t("answerAction", { answer: t(value) })}><Icon className="size-[22px]" strokeWidth={2.5} aria-hidden="true" /><span className="min-w-0 whitespace-normal leading-tight">{t(value)}</span></Button>)}</div>
     <p id="response-hint" className="mt-3 text-center text-[13px] text-muted-foreground">{t("swipeHint")}</p>
     {error && <div id="response-error" role="alert" className="feedback feedback-error mt-5"><p>{error}</p>{errorTarget === "nickname" && <a href="#nickname" className="text-action text-destructive">{t("nickname")}</a>}</div>}
+    {allAnswered && <details className="mt-5"><summary className="text-action cursor-pointer py-3">{t("reviewAnswers")}</summary><ol className="space-y-3">{questions.map((q, i) => <li key={q.id}><button type="button" disabled={busy} className="w-full text-left rounded-xl border border-border p-4" onClick={() => { cancel(); focusNext.current = true; setIndex(i); }}><span className="font-bold">Q{i + 1} · {q.text}</span><span className="block mt-2">{t(answers[q.id])}</span></button></li>)}</ol></details>}
+    <p className="mt-5 text-sm font-bold">{t("submitFinalWarning")}</p>
+    {!signedIn && <p className="mt-2 text-sm text-muted-foreground">{t("guestNotice")}</p>}
     <Button type="submit" disabled={!canSubmit} className="response-submit">{(submitting || navigating) && <LoadingSpinner />}{t(navigating ? "openingResults" : submitting ? "submitting" : "submitAnswers")}</Button>
     {(submitting || navigating) && <p role="status" className="sr-only">{t(navigating ? "submittedStatus" : "submittingStatus")}</p>}
   </form>;

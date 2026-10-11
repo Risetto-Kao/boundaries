@@ -12,7 +12,8 @@
       "codex/line-provider-configuration": false,
       "codex/line-auth-verification": false,
       "codex/boundary-ui-copy": false,
-      "codex/refine-boundary-experience": false
+      "codex/refine-boundary-experience": false,
+      "codex/template-form-separation": false
     }
   }
 }
