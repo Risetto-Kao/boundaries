@@ -5,6 +5,7 @@ import { AuthUnavailableError, getCurrentUser } from "@/lib/auth/user";
 import { isAccountHistoryEnabled, isSameOrigin } from "@/lib/auth/config";
 import { getRequestI18n } from "@/lib/i18n/server";
 import { createValidationSchemas } from "@/lib/validations";
+import { updateSurveyQuestions } from "@/lib/survey-question-updates";
 
 class MutationError extends Error { constructor(public status: number, message: string) { super(message); } }
 async function mutate(request: Request, params: Promise<{ surveyId: string }>, deleting: boolean) {
@@ -38,16 +39,10 @@ async function mutate(request: Request, params: Promise<{ surveyId: string }>, d
       const existing = new Set(survey.questions.map(question => question.id));
       const retained = input.questions.flatMap(question => question.id ? [question.id] : []);
       if (new Set(retained).size !== retained.length || retained.some(id => !existing.has(id))) throw new MutationError(400, t("invalidInput"));
-      await tx.question.deleteMany({ where: { surveyId, id: { notIn: retained } } });
-      // Move retained rows out of the positive range before assigning new order indexes.
-      for (let index = 0; index < retained.length; index++) await tx.question.update({ where: { id: retained[index] }, data: { orderIndex: -(index + 1) } });
-      for (const [index, question] of input.questions.entries()) {
-        if (question.id) await tx.question.update({ where: { id: question.id }, data: { text: question.text, orderIndex: index + 1 } });
-        else await tx.question.create({ data: { surveyId, text: question.text, orderIndex: index + 1 } });
-      }
+      await updateSurveyQuestions(tx, surveyId, input.questions);
       const updated = await tx.survey.update({ where: { id: surveyId }, data: { title: input.title, description: input.description || null }, select: { updatedAt: true, questions: { orderBy: { orderIndex: "asc" }, select: { id: true, text: true } } } });
       return updated;
-    });
+    }, { timeout: 15_000 });
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof MutationError) return NextResponse.json({ error: error.message }, { status: error.status });
