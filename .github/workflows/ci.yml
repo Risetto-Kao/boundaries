@@ -47,6 +47,7 @@ jobs:
       - run: pnpm test:i18n
       - run: pnpm test:design
       - run: pnpm test:forms
+      - run: pnpm test:form-tokens
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build

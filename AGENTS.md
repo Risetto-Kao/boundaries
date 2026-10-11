@@ -40,8 +40,12 @@
   authenticates `gh`. If CLI setup is missing, tell the user which host access or
   credential setup is needed. Do not replace injected credentials or start an
   interactive login automatically.
-- Do not run migrations, `db push`, resets, seeds, or write API requests against
-  production. Cloud/Preview data writes require an explicitly isolated database.
+- Task-related production form creation and normal form API writes are authorized
+  for debugging and verification. Keep writes scoped to the user's requested
+  forms; do not create unrelated sample data or delete existing data without
+  explicit authorization. Do not run production migrations, `db push`, database
+  resets, or seeds unless explicitly requested. Cloud/Preview data writes require
+  an explicitly isolated database.
 - Offline cloud setup supports install/build/lint/typecheck and static pages;
   it does not provide a working database. Report database-dependent UI as untested.
 - Use Arc for local browser verification. Record what was actually inspected;

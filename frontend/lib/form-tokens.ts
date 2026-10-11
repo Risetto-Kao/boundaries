@@ -4,9 +4,18 @@ export const guestCookie = "boundaries-guest-session";
 export const guestLifetime = 7 * 24 * 60 * 60;
 export const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 export const validToken = (token?: string) => Boolean(typeof token === "string" && /^[a-zA-Z0-9_-]{43}$/.test(token));
+export class FormAccessConfigurationError extends Error {
+  public readonly reason: "missing" | "invalid";
+  constructor(reason: "missing" | "invalid") {
+    super(`FORM_ACCESS_KEY configuration is ${reason}`);
+    this.name = "FormAccessConfigurationError";
+    this.reason = reason;
+  }
+}
 function key() {
-  const value = process.env.FORM_ACCESS_KEY;
-  if (!value || !/^[a-fA-F0-9]{64}$/.test(value)) throw new Error("FORM_ACCESS_KEY must be a 32-byte hexadecimal secret");
+  const value = process.env.FORM_ACCESS_KEY?.trim();
+  if (!value) throw new FormAccessConfigurationError("missing");
+  if (!/^[a-fA-F0-9]{64}$/.test(value)) throw new FormAccessConfigurationError("invalid");
   return Buffer.from(value, "hex");
 }
 export function createInvite() {
