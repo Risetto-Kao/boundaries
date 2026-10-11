@@ -9,6 +9,106 @@ datasource db {
   provider = "postgresql"
 }
 
+// Legacy tables remain untouched. New public lists never query these records.
+
+model Template {
+  id          String @id @default(uuid())
+  ownerType   String @default("USER") @map("owner_type") @db.VarChar(10)
+  ownerId     String? @map("owner_id") @db.Uuid
+  authorName  String? @map("author_name") @db.VarChar(200)
+  title       String @db.VarChar(200)
+  description String? @db.Text
+  sourceId    String? @map("source_id")
+  source      Template? @relation("TemplateCopies", fields: [sourceId], references: [id], onDelete: SetNull)
+  copies      Template[] @relation("TemplateCopies")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  questions   TemplateQuestion[]
+  forms       FillableForm[]
+  @@index([ownerId, createdAt])
+  @@map("boundary_templates")
+}
+
+model TemplateQuestion {
+  id         String @id @default(uuid())
+  templateId String @map("template_id")
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  orderIndex Int @map("order_index")
+  text       String @db.Text
+  @@unique([templateId, orderIndex])
+  @@map("boundary_template_questions")
+}
+
+model FillableForm {
+  id              String @id @default(uuid())
+  ownerId         String @map("owner_id") @db.Uuid
+  sourceId        String? @map("source_id")
+  source          Template? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  title           String @db.VarChar(200)
+  description     String? @db.Text
+  isOpen          Boolean @default(true) @map("is_open")
+  inviteHash      String @unique @map("invite_hash") @db.VarChar(64)
+  inviteEncrypted String @map("invite_encrypted") @db.Text
+  accessVersion   Int @default(1) @map("access_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  questions       FormQuestion[]
+  submissions     Submission[]
+  @@index([ownerId, createdAt])
+  @@map("boundary_forms")
+}
+
+model FormQuestion {
+  id         String @id @default(uuid())
+  formId     String @map("form_id")
+  form       FillableForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  orderIndex Int @map("order_index")
+  text       String @db.Text
+  answers    SubmissionAnswer[]
+  @@unique([formId, orderIndex])
+  @@map("boundary_form_questions")
+}
+
+model GuestSession {
+  id          String @id @default(uuid())
+  tokenHash   String @unique @map("token_hash") @db.VarChar(64)
+  expiresAt   DateTime @map("expires_at")
+  submissions Submission[]
+  @@map("boundary_guest_sessions")
+}
+
+model Submission {
+  id             String @id @default(uuid())
+  formId         String @map("form_id")
+  form           FillableForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  userId         String? @map("user_id") @db.Uuid
+  guestSessionId String? @map("guest_session_id")
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  nickname       String @db.VarChar(50)
+  requestHash    String @unique @map("request_hash") @db.VarChar(64)
+  payloadHash    String @map("payload_hash") @db.VarChar(64)
+  accessVersion  Int @map("access_version")
+  submittedAt    DateTime @default(now()) @map("submitted_at")
+  answers        SubmissionAnswer[]
+  @@unique([formId, userId])
+  @@unique([formId, guestSessionId])
+  @@index([userId, submittedAt])
+  @@map("boundary_submissions")
+}
+
+model SubmissionAnswer {
+  id           String @id @default(uuid())
+  submissionId String @map("submission_id")
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId   String @map("question_id")
+  question     FormQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value        String @db.VarChar(10)
+  @@unique([submissionId, questionId])
+  @@index([questionId])
+  @@map("boundary_submission_answers")
+}
+
 // 問卷主表
 model Survey {
   id          String     @id @default(uuid())

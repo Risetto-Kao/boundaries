@@ -12,13 +12,25 @@ permissions:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-ci-password
+          POSTGRES_DB: boundaries_forms_test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d boundaries_forms_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
     defaults:
       run:
         working-directory: frontend
     env:
-      # Build-only placeholder. CI does not contact a real database.
+      # Build-only placeholders. Functional checks use the isolated CI service.
       DATABASE_URL: postgresql://localhost:5432/boundaries
       DIRECT_URL: postgresql://localhost:5432/boundaries
+      BOUNDARIES_TEST_DATABASE_URL: postgresql://postgres:isolated-ci-password@127.0.0.1:5432/boundaries_forms_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,6 +46,7 @@ jobs:
       - run: pnpm test:auth
       - run: pnpm test:i18n
       - run: pnpm test:design
+      - run: pnpm test:forms
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
