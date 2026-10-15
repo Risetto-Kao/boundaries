@@ -70,7 +70,7 @@ const messages = {
   "answerProgress": "回答の進捗",
   "questionCards": "質問カード",
   "answeredAll": "すべての質問に回答しました",
-  "confirmNickname": "ニックネームを確認して送信してください。最後の回答を変更するには「前の質問」を選びます。",
+  "confirmNickname": "ニックネームを確認して「回答を送信」を押すと完了します。",
   "answerAction": "{answer} と回答",
   "notSubmitted": "{count}/{total} 問回答済み。まだ送信されていません",
   "swipeHint": "左にスワイプで「いいえ」、右で「はい」、ダブルタップで「場合による」。ボタンでも回答できます。",

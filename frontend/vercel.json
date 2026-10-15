@@ -14,7 +14,8 @@
       "codex/boundary-ui-copy": false,
       "codex/refine-boundary-experience": false,
       "codex/template-form-separation": false,
-      "codex/fix-form-generation-config": false
+      "codex/fix-form-generation-config": false,
+      "codex/smooth-response-cards": false
     }
   }
 }

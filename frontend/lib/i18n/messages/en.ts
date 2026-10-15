@@ -70,7 +70,7 @@ const messages = {
   "answerProgress": "Answer progress",
   "questionCards": "Question cards",
   "answeredAll": "You've answered every question",
-  "confirmNickname": "Check your nickname, then submit. To change your last answer, choose Previous question.",
+  "confirmNickname": "Check your nickname, then select “Submit answers” to finish.",
   "answerAction": "Answer {answer}",
   "notSubmitted": "Answered {count}/{total}; not submitted yet",
   "swipeHint": "Swipe left for “No”, right for “Yes”, double-tap for “Depends”, or use the buttons.",
