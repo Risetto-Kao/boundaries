@@ -70,7 +70,7 @@ const messages = {
   "answerProgress": "응답 진행 상황",
   "questionCards": "질문 카드",
   "answeredAll": "모든 질문에 답했습니다",
-  "confirmNickname": "닉네임을 확인한 후 제출하세요. 마지막 응답을 수정하려면 이전 질문을 선택하세요.",
+  "confirmNickname": "닉네임을 확인한 후 “응답 제출”을 눌러 완료하세요.",
   "answerAction": "{answer} 응답",
   "notSubmitted": "{count}/{total}개 응답 완료, 아직 제출되지 않았습니다",
   "swipeHint": "왼쪽은 “아니요”, 오른쪽은 “예”, 두 번 누르면 “상황에 따라”. 버튼으로도 답할 수 있어요.",

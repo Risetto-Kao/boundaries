@@ -68,7 +68,7 @@ const messages = {
   "answerProgress": "作答進度",
   "questionCards": "問題卡牌",
   "answeredAll": "每一題，都有你的答案了",
-  "confirmNickname": "確認暱稱後，就可以提交。想修改最後一題？點選「上一題」。",
+  "confirmNickname": "確認暱稱後，按下「提交答案」即可完成。",
   "answerAction": "回答 {answer}",
   "notSubmitted": "已作答 {count}/{total} 題，答案尚未提交",
   "swipeHint": "左滑「不可以」，右滑「可以」，雙擊「看狀況」，也可以點按鈕。",
